@@ -99,17 +99,13 @@ async function requireAdmin(req, res, next) {
 const VALID_CLASSES = ['3APS', '3APV'];
 const CONTENT_SECTIONS = classContentDefaults.SECTIONS;
 
-const dbReady = initMongo().catch((e) => {
-  console.error('Initialisation MongoDB :', e);
-  throw e;
-});
-
 app.use(async (req, res, next) => {
   try {
-    await dbReady;
+    await initMongo();
     next();
   } catch (e) {
-    res.status(500).json({ error: 'Erreur initialisation serveur' });
+    console.error('Erreur connexion MongoDB lors de la requête :', e);
+    res.status(500).json({ error: 'Erreur d\'initialisation de la base de données.' });
   }
 });
 
@@ -344,7 +340,7 @@ module.exports = app;
 
 // ── Démarrage local (node server.js) ─────────────────
 if (require.main === module) {
-  dbReady.then(() => {
+  initMongo().then(() => {
     app.listen(PORT, () => {
       console.log(`\n🚀 Serveur IPSA démarré sur http://localhost:${PORT}`);
       console.log(`   Dashboard : http://localhost:${PORT}/ipsa_plateforme.html`);
