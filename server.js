@@ -10,7 +10,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const SALT_ROUNDS = 10;
 const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
-const mongoUri = process.env.MONGO_URI;
+const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
 const mongoDbName = process.env.MONGO_DB_NAME || 'ipsa_plateforme';
 
 if (!mongoUri) {
