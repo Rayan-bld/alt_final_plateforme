@@ -1,0 +1,17 @@
+{
+  "name": "ipsa-plateforme-apprentissage",
+  "version": "1.0.0",
+  "description": "Plateforme étudiante IPSA — Apprentissage",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "init-db": "node init-db.js"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "connect-mongo": "^6.0.0",
+    "express": "^4.21.0",
+    "express-session": "^1.18.0",
+    "mongodb": "^7.2.0"
+  }
+}

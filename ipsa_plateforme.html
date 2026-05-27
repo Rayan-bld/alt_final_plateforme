@@ -1,0 +1,1645 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IPSA — Plateforme Apprentissage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#f0f2f7;--surface:#ffffff;--card:#ffffff;--border:#e0e3ed;
+  --accent:#4f46e5;--accent2:#e5395f;--accent3:#16a34a;--accent4:#d97706;--accent5:#0284c7;
+  --text:#1e1e2e;--muted:#64748b;--radius:12px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* ── LOGIN ─────────────────────────── */
+#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;
+  background-image:radial-gradient(ellipse at 20% 50%,rgba(79,70,229,.06) 0%,transparent 60%),
+                   radial-gradient(ellipse at 80% 20%,rgba(2,132,199,.04) 0%,transparent 60%)}
+.login-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px;width:440px;max-width:95vw;box-shadow:0 4px 24px rgba(0,0,0,.06)}
+.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:32px}
+.login-badge{display:flex;align-items:center}
+.login-badge img{height:36px;width:auto}
+.login-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:700}
+.login-sub{font-size:13px;color:var(--muted)}
+.login-tabs{display:flex;gap:2px;background:var(--bg);border-radius:8px;padding:3px;margin-bottom:24px}
+.login-tab{flex:1;padding:8px;border-radius:6px;font-size:13px;cursor:pointer;color:var(--muted);transition:all .15s;border:none;background:none;font-family:'DM Sans',sans-serif;text-align:center}
+.login-tab.active{background:var(--accent);color:#fff}
+.login-form-section{display:none}.login-form-section.active{display:block}
+.login-error{background:rgba(229,57,95,.08);border:1px solid rgba(229,57,95,.2);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--accent2);margin-bottom:16px;display:none}
+.admin-hint{background:rgba(79,70,229,.06);border:1px solid rgba(79,70,229,.15);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--muted);margin-top:12px;font-family:'DM Mono',monospace}
+.admin-hint strong{color:var(--accent)}
+
+/* ── SHARED COMPONENTS ───────────────── */
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:58px;position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-badge{display:flex;align-items:center}
+.logo-badge img{height:28px;width:auto}
+.logo-text{font-family:'Syne',sans-serif;font-weight:600;font-size:15px}
+.logo-sub{font-size:11px;color:var(--muted);margin-left:4px}
+.header-right{display:flex;align-items:center;gap:10px}
+.notif-btn{background:var(--bg);border:1px solid var(--border);border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;color:var(--muted);font-size:16px;transition:all .15s}
+.notif-btn:hover{border-color:var(--accent);color:var(--accent)}
+.notif-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--accent2);border:2px solid var(--surface)}
+.user-chip{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:13px;display:flex;align-items:center;gap:8px;cursor:pointer;transition:all .15s}
+.user-chip:hover{border-color:var(--accent)}
+.user-avatar-sm{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:10px}
+.admin-chip{background:rgba(229,57,95,.08);border-color:rgba(229,57,95,.2);color:var(--accent2)}
+
+.layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 58px)}
+
+/* ── SIDEBAR ──────────────────────────── */
+.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:16px 0;overflow-y:auto}
+.sidebar-section{margin-bottom:6px}
+.sidebar-label{font-size:9px;letter-spacing:2px;color:var(--muted);padding:8px 16px 4px;text-transform:uppercase;font-family:'DM Mono',monospace}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 16px;font-size:13px;cursor:pointer;border-left:3px solid transparent;transition:all .15s;color:var(--muted);user-select:none}
+.nav-item:hover{background:rgba(79,70,229,.05);color:var(--text);border-left-color:rgba(79,70,229,.3)}
+.nav-item.active{background:rgba(79,70,229,.08);color:var(--accent);border-left-color:var(--accent);font-weight:500}
+.nav-item i{font-size:16px;flex-shrink:0}
+.nav-badge{background:var(--accent);color:#fff;font-size:9px;font-family:'DM Mono',monospace;padding:2px 6px;border-radius:20px;margin-left:auto}
+.nav-badge.red{background:var(--accent2)}
+.nav-badge.green{background:var(--accent3);color:#0a1a10}
+.nav-badge.orange{background:var(--accent4);color:#1a0f00}
+
+/* ── MAIN ──────────────────────────────── */
+.main{padding:22px;overflow-y:auto}
+.page-section{display:none}.page-section.active{display:block}
+
+/* ── PAGE HEADER ────────────────────────── */
+.page-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px}
+.page-title{font-family:'Syne',sans-serif;font-size:21px;font-weight:700}
+.page-title span{color:var(--accent)}
+.page-sub{font-size:12px;color:var(--muted);margin-top:3px}
+.page-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+/* ── BUTTONS ───────────────────────────── */
+.btn{border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;display:inline-flex;align-items:center;gap:6px;transition:all .15s;border:none}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:#7c75ff;transform:translateY(-1px)}
+.btn-secondary{background:var(--bg);border:1px solid var(--border);color:var(--muted)}.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.btn-danger{background:rgba(229,57,95,.08);border:1px solid rgba(229,57,95,.2);color:var(--accent2)}.btn-danger:hover{background:rgba(229,57,95,.15)}
+.btn-success{background:rgba(22,163,74,.08);border:1px solid rgba(22,163,74,.2);color:var(--accent3)}.btn-success:hover{background:rgba(22,163,74,.15)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-icon{width:32px;height:32px;padding:0;justify-content:center;font-size:14px}
+
+/* ── STATS ─────────────────────────────── */
+.stats-grid{display:grid;gap:12px;margin-bottom:22px}
+.stats-grid.c4{grid-template-columns:repeat(4,1fr)}
+.stats-grid.c3{grid-template-columns:repeat(3,1fr)}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.stat-card.c-purple::before{background:var(--accent)}.stat-card.c-green::before{background:var(--accent3)}
+.stat-card.c-orange::before{background:var(--accent4)}.stat-card.c-red::before{background:var(--accent2)}
+.stat-card.c-blue::before{background:var(--accent5)}
+.stat-num{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;margin-bottom:4px}
+.stat-lbl{font-size:12px;color:var(--muted)}
+
+/* ── CARDS & TABLES ─────────────────────── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;transition:all .15s;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card:hover{border-color:rgba(79,70,229,.3)}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.card-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:600}
+.item-row{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;cursor:pointer;transition:all .15s}
+.item-row:hover{border-color:rgba(79,70,229,.3);transform:translateX(3px)}
+.item-row.exam-row:hover{border-color:rgba(229,57,95,.3)}
+.item-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.item-info{flex:1;min-width:0}
+.item-title{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.item-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+
+/* ── TAGS & PILLS ────────────────────────── */
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:3px 8px;border-radius:20px;font-family:'DM Mono',monospace;font-weight:500;white-space:nowrap}
+.tag-partiel{background:rgba(229,57,95,.1);color:#be123c}
+.tag-ds{background:rgba(217,119,6,.1);color:#b45309}
+.tag-tp{background:rgba(2,132,199,.1);color:#0369a1}
+.tag-projet{background:rgba(22,163,74,.1);color:#15803d}
+.tag-rendu{background:rgba(79,70,229,.1);color:#4338ca}
+.tag-event{background:rgba(229,57,95,.08);color:#be123c}
+.countdown{font-family:'DM Mono',monospace;font-size:11px;padding:4px 9px;border-radius:6px;font-weight:500}
+.cd-urgent{background:rgba(229,57,95,.1);color:#be123c}
+.cd-soon{background:rgba(217,119,6,.1);color:#b45309}
+.cd-ok{background:rgba(22,163,74,.1);color:#15803d}
+
+/* ── STARS ───────────────────────────────── */
+.stars{display:flex;gap:3px}
+.star{font-size:14px;cursor:pointer;transition:all .1s;color:var(--border)}
+.star.lit{color:#d97706}
+.star:hover{transform:scale(1.2)}
+
+/* ── FORM ────────────────────────────────── */
+.form-group{margin-bottom:14px}
+.form-label{font-size:11px;color:var(--muted);margin-bottom:5px;display:block;letter-spacing:.5px;text-transform:uppercase}
+.form-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 13px;font-size:14px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s}
+.form-input:focus{border-color:var(--accent)}
+.form-input::placeholder{color:var(--muted)}
+.form-input[readonly]{opacity:.6;cursor:default}
+textarea.form-input{min-height:80px;resize:vertical}
+select.form-input{cursor:pointer;appearance:none}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.form-actions{display:flex;gap:8px;margin-top:18px}
+
+/* ── MODAL ───────────────────────────────── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:300;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(6px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:580px;max-height:90vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.12)}
+.modal.wide{max-width:760px}
+.modal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.modal-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;display:flex;align-items:center;gap:8px}
+.close-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;padding:4px;border-radius:6px;line-height:1;transition:all .15s}
+.close-btn:hover{color:var(--text);background:var(--bg)}
+
+/* ── EDT / TIMETABLE ─────────────────────── */
+.edt-grid{display:grid;grid-template-columns:60px repeat(6,1fr);gap:1px;background:var(--border);border-radius:10px;overflow:hidden}
+.edt-header{background:var(--card);padding:10px 6px;text-align:center;font-family:'Syne',sans-serif;font-size:12px;font-weight:600}
+.edt-time{background:var(--surface);padding:8px 4px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);display:flex;align-items:center;justify-content:center}
+.edt-cell{background:var(--surface);min-height:50px;padding:3px;cursor:pointer;transition:background .15s;position:relative}
+.edt-cell:hover{background:rgba(79,70,229,.04)}
+.edt-course{border-radius:6px;padding:5px 7px;font-size:11px;font-weight:500;line-height:1.3;height:100%;cursor:pointer}
+.edt-course.type-cours{background:rgba(79,70,229,.1);border-left:3px solid var(--accent);color:#4338ca}
+.edt-course.type-td{background:rgba(2,132,199,.1);border-left:3px solid var(--accent5);color:#0369a1}
+.edt-course.type-tp{background:rgba(22,163,74,.1);border-left:3px solid var(--accent3);color:#15803d}
+.edt-course.type-exam{background:rgba(229,57,95,.1);border-left:3px solid var(--accent2);color:#be123c}
+.edt-course-name{font-weight:600;margin-bottom:2px}
+.edt-course-room{color:inherit;opacity:.7;font-size:10px}
+
+/* ── COURS FOLDERS ────────────────────────── */
+.subject-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:20px}
+.subject-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.subject-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 24px rgba(79,70,229,.1)}
+.subject-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.subject-icon{font-size:28px;margin-bottom:10px;display:block}
+.subject-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:600;margin-bottom:4px}
+.subject-count{font-size:11px;color:var(--muted)}
+.chapter-list{padding:0;list-style:none}
+.chapter-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;cursor:pointer;transition:all .15s;border:1px solid var(--border);margin-bottom:6px;background:var(--card)}
+.chapter-item:hover{border-color:rgba(79,70,229,.3);background:rgba(79,70,229,.04)}
+.chapter-type{font-size:10px;padding:2px 7px;border-radius:20px;font-family:'DM Mono',monospace}
+.ct-cours{background:rgba(79,70,229,.1);color:#4338ca}
+.ct-td{background:rgba(2,132,199,.1);color:#0369a1}
+.ct-tp{background:rgba(22,163,74,.1);color:#15803d}
+
+/* ── NEWS ────────────────────────────────── */
+.news-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;transition:all .15s}
+.news-card:hover{border-color:rgba(79,70,229,.25)}
+.news-card.urgent{border-color:rgba(229,57,95,.3);background:rgba(229,57,95,.03)}
+.news-tag{font-size:10px;padding:2px 8px;border-radius:20px;font-family:'DM Mono',monospace;margin-bottom:8px;display:inline-block}
+.nt-info{background:rgba(79,70,229,.1);color:#4338ca}
+.nt-urgent{background:rgba(229,57,95,.1);color:#be123c}
+.nt-annonce{background:rgba(22,163,74,.1);color:#15803d}
+.nt-absent{background:rgba(217,119,6,.1);color:#b45309}
+.news-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:600;margin-bottom:6px}
+.news-body{font-size:13px;color:var(--muted);line-height:1.6}
+.news-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px;font-size:11px;color:var(--muted)}
+
+/* ── NOTATION PROFS ─────────────────────── */
+.prof-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
+.prof-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.prof-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:16px}
+.prof-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:600}
+.prof-matiere{font-size:12px;color:var(--muted)}
+.rating-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.rating-label{font-size:12px;color:var(--muted);width:140px;flex-shrink:0}
+.rating-bar{flex:1;height:6px;background:var(--border);border-radius:3px;margin:0 10px;overflow:hidden}
+.rating-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent5));transition:width .4s}
+.rating-score{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);width:25px;text-align:right}
+
+/* ── LOGICIELS ──────────────────────────── */
+.software-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.soft-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;transition:all .2s}
+.soft-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 24px rgba(79,70,229,.08)}
+.soft-icon{width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px}
+.soft-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:600;margin-bottom:4px}
+.soft-desc{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5}
+.soft-actions{display:flex;gap:6px;flex-wrap:wrap}
+.tuto-list{list-style:none;padding:0}
+.tuto-item{display:flex;align-items:center;gap:10px;padding:12px;border-radius:8px;border:1px solid var(--border);margin-bottom:8px;cursor:pointer;transition:all .15s;background:var(--card)}
+.tuto-item:hover{border-color:rgba(79,70,229,.3)}
+.tuto-num{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:'DM Mono',monospace;flex-shrink:0}
+
+/* ── REMINDER BANNER ─────────────────────── */
+.reminder-banner{background:rgba(229,57,95,.05);border:1px solid rgba(229,57,95,.2);border-radius:12px;padding:16px;margin-bottom:16px}
+.reminder-banner h3{font-family:'Syne',sans-serif;font-size:14px;color:var(--accent2);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.reminder-chips{display:flex;gap:8px;flex-wrap:wrap}
+.reminder-chip{background:rgba(229,57,95,.08);border:1px solid rgba(229,57,95,.15);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;color:var(--accent2);transition:all .15s}
+.reminder-chip:hover{background:rgba(229,57,95,.15)}
+
+/* ── ADMIN ──────────────────────────────── */
+.admin-table{width:100%;border-collapse:collapse;font-size:13px}
+.admin-table th{text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;font-family:'DM Mono',monospace}
+.admin-table td{padding:10px 12px;border-bottom:1px solid var(--border)}
+.admin-table tr:hover td{background:rgba(79,70,229,.03)}
+.role-chip{font-size:10px;padding:2px 8px;border-radius:20px;font-family:'DM Mono',monospace}
+.role-admin{background:rgba(229,57,95,.1);color:var(--accent2)}
+.role-student{background:rgba(79,70,229,.1);color:#4338ca}
+
+/* ── DASHBOARD WIDGETS ──────────────────── */
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.upcoming-list{display:flex;flex-direction:column;gap:8px}
+.upcoming-item{display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg);border-radius:8px}
+.upcoming-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* ── TOAST ──────────────────────────────── */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:12px 18px;border-radius:10px;font-size:13px;z-index:999;transform:translateY(80px);transition:transform .3s;display:flex;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.1)}
+.toast.show{transform:translateY(0)}
+.toast.success{border-color:rgba(22,163,74,.3);color:var(--accent3)}
+.toast.error{border-color:rgba(229,57,95,.3);color:var(--accent2)}
+
+/* ── UTILS ───────────────────────────────── */
+.empty{text-align:center;padding:48px 20px;color:var(--muted)}
+.empty i{font-size:36px;display:block;margin-bottom:10px;opacity:.3}
+.empty p{font-size:13px}
+.search-box{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 13px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:8px;min-width:200px}
+.search-box input{background:none;border:none;outline:none;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;width:100%}
+.search-box input::placeholder{color:var(--muted)}
+.divider{border:none;border-top:1px solid var(--border);margin:16px 0}
+.text-muted{color:var(--muted)}
+.text-sm{font-size:12px}
+.flex{display:flex;align-items:center}
+.gap-8{gap:8px}
+.mt-4{margin-top:4px}
+.section-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;margin-bottom:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.highlight-box{background:rgba(79,70,229,.04);border:1px solid rgba(79,70,229,.12);border-radius:10px;padding:14px}
+
+@media(max-width:768px){
+  .layout{grid-template-columns:1fr}.sidebar{display:none}
+  .stats-grid.c4{grid-template-columns:repeat(2,1fr)}
+  .dash-grid{grid-template-columns:1fr}.form-row,.form-row3{grid-template-columns:1fr}
+  .subject-list{grid-template-columns:1fr 1fr}.software-grid{grid-template-columns:1fr}
+  .edt-grid{grid-template-columns:40px repeat(6,1fr)}
+}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"><i class="ti ti-info-circle"></i><span id="toast-msg">—</span></div>
+
+<!-- ════════════════════ LOGIN ════════════════════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <span class="login-badge"><img src="https://newsroom.ipsa.fr/wp-content/uploads/2024/10/IPSA_LOGO_SS-BASELINE-2021_NOIR.png" alt="IPSA"></span>
+      <div>
+        <div class="login-title">Plateforme Apprentissage</div>
+        <div class="login-sub">Promo 2025 – 2027</div>
+      </div>
+    </div>
+    <div class="login-tabs">
+      <button class="login-tab active" onclick="switchLoginTab('login')">Connexion</button>
+      <button class="login-tab" onclick="switchLoginTab('register')">Créer un compte</button>
+    </div>
+    <div id="login-error" class="login-error"></div>
+
+    <!-- Connexion -->
+    <div class="login-form-section active" id="tab-login">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" id="l-email" type="email" placeholder="prenom.nom@ipsa.fr" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mot de passe</label>
+        <input class="form-input" id="l-password" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="doLogin()">
+        <i class="ti ti-login"></i> Se connecter
+      </button>
+      <div class="admin-hint">
+        <strong>Admin :</strong> admin@ipsa.fr / Admin2025!
+      </div>
+    </div>
+
+    <!-- Register -->
+    <div class="login-form-section" id="tab-register">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Prénom</label>
+          <input class="form-input" id="r-firstname" placeholder="Prénom">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nom</label>
+          <input class="form-input" id="r-lastname" placeholder="Nom">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" id="r-email" type="email" placeholder="prenom.nom@ipsa.fr">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Promotion</label>
+        <select class="form-input" id="r-promo">
+          <option value="3A">3ème année (2025–2026)</option>
+          <option value="4A">4ème année</option>
+          <option value="5A">5ème année</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mot de passe</label>
+        <input class="form-input" id="r-password" type="password" placeholder="Minimum 6 caractères">
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="doRegister()">
+        <i class="ti ti-user-plus"></i> Créer mon compte
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ APP ════════════════════ -->
+<div id="app" style="display:none">
+
+<!-- Header -->
+<div class="header">
+  <div class="logo">
+    <span class="logo-badge"><img src="https://newsroom.ipsa.fr/wp-content/uploads/2024/10/IPSA_LOGO_SS-BASELINE-2021_NOIR.png" alt="IPSA"></span>
+    <div>
+      <span class="logo-text">Apprentissage<span class="logo-sub">/ Plateforme étudiante</span></span>
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="notif-btn" onclick="showPage('actualites')" title="Actualités"><i class="ti ti-bell"></i><span class="notif-dot" id="notif-dot" style="display:none"></span></button>
+    <a href="https://pegasus.ipsa.fr" target="_blank" class="btn btn-sm btn-secondary"><i class="ti ti-external-link"></i> Pegasus</a>
+    <div class="user-chip" id="user-chip" onclick="showPage('admin')">
+      <div class="user-avatar-sm" id="header-avatar"></div>
+      <span id="header-name">—</span>
+    </div>
+    <button class="btn btn-sm btn-danger" onclick="doLogout()"><i class="ti ti-logout"></i></button>
+  </div>
+</div>
+
+<div class="layout">
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-label">Vue d'ensemble</div>
+    <div class="nav-item active" onclick="showPage('dashboard')"><i class="ti ti-dashboard"></i> Tableau de bord</div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Scolarité</div>
+    <div class="nav-item" onclick="showPage('edt')"><i class="ti ti-calendar-week"></i> Emploi du temps</div>
+    <div class="nav-item" onclick="showPage('examens')"><i class="ti ti-writing"></i> Examens <span class="nav-badge red" id="badge-examens">0</span></div>
+    <div class="nav-item" onclick="showPage('rendus')"><i class="ti ti-file-upload"></i> Rendus & Deadlines <span class="nav-badge orange" id="badge-rendus">0</span></div>
+    <div class="nav-item" onclick="showPage('cours')"><i class="ti ti-books"></i> Cours & Ressources</div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Vie étudiante</div>
+    <div class="nav-item" onclick="showPage('actualites')"><i class="ti ti-news"></i> Actualités <span class="nav-badge" id="badge-actu" style="display:none">!</span></div>
+    <div class="nav-item" onclick="showPage('evenements')"><i class="ti ti-calendar-event"></i> Événements</div>
+    <div class="nav-item" onclick="showPage('notations')"><i class="ti ti-star"></i> Notation des profs</div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Ressources</div>
+    <div class="nav-item" onclick="showPage('logiciels')"><i class="ti ti-device-desktop"></i> Logiciels & Tutos</div>
+  </div>
+  <div class="sidebar-section" id="admin-section" style="display:none">
+    <div class="sidebar-label">Administration</div>
+    <div class="nav-item" onclick="showPage('admin')"><i class="ti ti-settings"></i> Panneau admin</div>
+  </div>
+</div>
+
+<!-- Main content -->
+<div class="main">
+
+<!-- ─── DASHBOARD ─────────────────────────────── -->
+<div class="page-section active" id="page-dashboard">
+  <div class="page-hd">
+    <div>
+      <div class="page-title">Tableau de bord <span>— Vue d'ensemble</span></div>
+      <div class="page-sub" id="dash-date"></div>
+    </div>
+  </div>
+  <div class="stats-grid c4" id="dash-stats"></div>
+  <div id="reminder-zone"></div>
+  <div class="dash-grid">
+    <div class="card">
+      <div class="card-header"><div class="card-title"><i class="ti ti-writing" style="color:var(--accent2)"></i> Examens à venir</div></div>
+      <div id="dash-examens"></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title"><i class="ti ti-file-upload" style="color:var(--accent4)"></i> Rendus proches</div></div>
+      <div id="dash-rendus"></div>
+    </div>
+  </div>
+  <div class="dash-grid">
+    <div class="card">
+      <div class="card-header"><div class="card-title"><i class="ti ti-news" style="color:var(--accent)"></i> Dernières actus</div></div>
+      <div id="dash-news"></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title"><i class="ti ti-calendar-event" style="color:var(--accent3)"></i> Prochains événements</div></div>
+      <div id="dash-events"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── EMPLOI DU TEMPS ───────────────────────── -->
+<div class="page-section" id="page-edt">
+  <div class="page-hd">
+    <div>
+      <div class="page-title">Emploi <span>du temps</span></div>
+      <div class="page-sub">Semaine en cours — synchronisé manuellement depuis Pegasus</div>
+    </div>
+    <div class="page-actions">
+      <a href="https://pegasus.ipsa.fr" target="_blank" class="btn btn-secondary"><i class="ti ti-refresh"></i> Ouvrir Pegasus</a>
+      <button class="btn btn-primary" onclick="openEdtModal()"><i class="ti ti-plus"></i> Ajouter un cours</button>
+    </div>
+  </div>
+  <div class="highlight-box" style="margin-bottom:16px">
+    <div style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px">
+      <i class="ti ti-info-circle" style="color:var(--accent)"></i>
+      <span>Cliquez sur une case vide pour y ajouter un cours, ou sur un cours existant pour le modifier. Pour importer depuis Pegasus, utilisez le bouton ci-dessus.</span>
+    </div>
+  </div>
+  <div style="overflow-x:auto">
+    <div class="edt-grid" id="edt-grid" style="min-width:600px"></div>
+  </div>
+  <div style="display:flex;gap:12px;margin-top:14px;flex-wrap:wrap">
+    <span style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;border-radius:3px;background:rgba(79,70,229,.15);border-left:3px solid var(--accent);display:inline-block"></span>Cours magistral</span>
+    <span style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;border-radius:3px;background:rgba(0,198,255,.15);border-left:3px solid var(--accent5);display:inline-block"></span>TD</span>
+    <span style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;border-radius:3px;background:rgba(67,233,123,.15);border-left:3px solid var(--accent3);display:inline-block"></span>TP</span>
+    <span style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;border-radius:3px;background:rgba(229,57,95,.2);border-left:3px solid var(--accent2);display:inline-block"></span>Examen</span>
+  </div>
+</div>
+
+<!-- ─── EXAMENS ──────────────────────────────── -->
+<div class="page-section" id="page-examens">
+  <div class="page-hd">
+    <div>
+      <div class="page-title">Dates <span>d'examens</span></div>
+      <div class="page-sub">Partiels et Devoirs Surveillés</div>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-primary" id="btn-add-exam" onclick="openExamModal()"><i class="ti ti-plus"></i> Ajouter un examen</button>
+    </div>
+  </div>
+  <div class="stats-grid c3" id="exam-stats"></div>
+  <div class="section-title" style="margin-top:8px">Tous les examens</div>
+  <div id="exam-list"></div>
+</div>
+
+<!-- ─── RENDUS ───────────────────────────────── -->
+<div class="page-section" id="page-rendus">
+  <div class="page-hd">
+    <div>
+      <div class="page-title">Rendus <span>& Deadlines</span></div>
+      <div class="page-sub">Travaux à rendre — cliquez sur un rendu pour voir le sujet</div>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-primary" id="btn-add-rendu" onclick="openRenduModal()"><i class="ti ti-plus"></i> Ajouter un rendu</button>
+    </div>
+  </div>
+  <div id="rendu-list"></div>
+</div>
+
+<!-- ─── COURS ────────────────────────────────── -->
+<div class="page-section" id="page-cours">
+  <div class="page-hd">
+    <div>
+      <div class="page-title">Cours <span>& Ressources</span></div>
+      <div class="page-sub">Organisez vos cours par matière</div>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-secondary" id="btn-cours-back" onclick="showSubjectList()" style="display:none"><i class="ti ti-arrow-left"></i> Retour</button>
+      <button class="btn btn-primary" id="btn-add-subject" onclick="openSubjectModal()"><i class="ti ti-folder-plus"></i> Nouvelle matière</button>
+      <button class="btn btn-primary" id="btn-add-chapter" onclick="openChapterModal()" style="display:none"><i class="ti ti-plus"></i> Ajouter un chapitre</button>
+    </div>
+  </div>
+  <div id="cours-content"></div>
+</div>
+
+<!-- ─── ACTUALITÉS ───────────────────────────── -->
+<div class="page-section" id="page-actualites">
+  <div class="page-hd">
+    <div>
+      <div class="page-title">Actualités <span>& Infos</span></div>
+      <div class="page-sub">Annonces, absences de profs, informations importantes</div>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-primary" id="btn-add-news" style="display:none" onclick="openNewsModal()"><i class="ti ti-plus"></i> Publier une annonce</button>
+    </div>
+  </div>
+  <div id="news-list"></div>
+</div>
+
+<!-- ─── NOTATIONS PROFS ──────────────────────── -->
+<div class="page-section" id="page-notations">
+  <div class="page-hd">
+    <div>
+      <div class="page-title">Notation <span>des professeurs</span></div>
+      <div class="page-sub">Évaluez pédagogie, clarté, disponibilité — anonyme</div>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-primary" onclick="openProfModal()"><i class="ti ti-user-plus"></i> Ajouter un prof</button>
+      <button class="btn btn-secondary" onclick="openRatingModal()"><i class="ti ti-star"></i> Déposer une note</button>
+    </div>
+  </div>
+  <div id="prof-list"></div>
+</div>
+
+<!-- ─── ÉVÉNEMENTS ───────────────────────────── -->
+<div class="page-section" id="page-evenements">
+  <div class="page-hd">
+    <div>
+      <div class="page-title">Événements <span>IPSA</span></div>
+      <div class="page-sub">Conférences, soirées, compétitions, sorties…</div>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-primary" id="btn-add-event" onclick="openEventModal()"><i class="ti ti-plus"></i> Créer un événement</button>
+    </div>
+  </div>
+  <div id="event-list"></div>
+</div>
+
+<!-- ─── LOGICIELS ────────────────────────────── -->
+<div class="page-section" id="page-logiciels">
+  <div class="page-hd">
+    <div>
+      <div class="page-title">Logiciels <span>& Tutoriels</span></div>
+      <div class="page-sub">Packs disponibles et guides d'initiation</div>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-primary" id="btn-add-soft" style="display:none" onclick="openSoftModal()"><i class="ti ti-plus"></i> Ajouter un logiciel</button>
+    </div>
+  </div>
+  <div class="software-grid" id="soft-grid"></div>
+</div>
+
+<!-- ─── ADMIN ─────────────────────────────────── -->
+<div class="page-section" id="page-admin">
+  <div class="page-hd">
+    <div>
+      <div class="page-title">Panneau <span>Admin</span></div>
+      <div class="page-sub">Gestion des utilisateurs et du contenu</div>
+    </div>
+  </div>
+  <div class="dash-grid" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Statistiques plateforme</div></div>
+      <div id="admin-stats"></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Actions rapides</div></div>
+      <div style="display:flex;flex-direction:column;gap:8px" id="admin-actions">
+        <button class="btn btn-secondary" onclick="showPage('actualites');document.getElementById('btn-add-news').click()"><i class="ti ti-news"></i> Publier une actualité</button>
+        <button class="btn btn-secondary" onclick="showPage('examens');document.getElementById('btn-add-exam').click()"><i class="ti ti-writing"></i> Ajouter un examen</button>
+        <button class="btn btn-secondary" onclick="showPage('evenements');document.getElementById('btn-add-event').click()"><i class="ti ti-calendar-event"></i> Créer un événement</button>
+        <button class="btn btn-secondary" onclick="showPage('logiciels');document.getElementById('btn-add-soft').click()"><i class="ti ti-device-desktop"></i> Ajouter un logiciel</button>
+        <button class="btn btn-danger" onclick="if(confirm('Réinitialiser TOUTES les données ?')){localStorage.clear();location.reload()}"><i class="ti ti-trash"></i> Réinitialiser les données</button>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Utilisateurs inscrits</div><button class="btn btn-sm btn-danger" onclick="exportUsers()"><i class="ti ti-download"></i> Exporter</button></div>
+    <div style="overflow-x:auto"><table class="admin-table" id="users-table"></table></div>
+  </div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /layout -->
+</div><!-- /app -->
+
+<!-- ══════════════════ MODALS ══════════════════ -->
+
+<!-- EDT Modal -->
+<div class="modal-overlay" id="edt-modal">
+<div class="modal">
+  <div class="modal-hd"><div class="modal-title"><i class="ti ti-calendar-week"></i> <span id="edt-modal-title">Ajouter un cours</span></div><button class="close-btn" onclick="closeModal('edt-modal')"><i class="ti ti-x"></i></button></div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Matière *</label><input class="form-input" id="edt-matiere" placeholder="Ex: Mécanique des Fluides"></div>
+    <div class="form-group"><label class="form-label">Enseignant</label><input class="form-input" id="edt-prof" placeholder="M. Dupont"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Jour *</label>
+      <select class="form-input" id="edt-jour">
+        <option value="1">Lundi</option><option value="2">Mardi</option><option value="3">Mercredi</option>
+        <option value="4">Jeudi</option><option value="5">Vendredi</option><option value="6">Samedi</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Type</label>
+      <select class="form-input" id="edt-type">
+        <option value="cours">CM – Cours magistral</option><option value="td">TD – Travaux dirigés</option>
+        <option value="tp">TP – Travaux pratiques</option><option value="exam">Examen / DS</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Heure début *</label><input class="form-input" id="edt-debut" type="time" value="08:30"></div>
+    <div class="form-group"><label class="form-label">Heure fin *</label><input class="form-input" id="edt-fin" type="time" value="10:00"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Salle</label><input class="form-input" id="edt-salle" placeholder="A204"></div>
+    <div class="form-group"><label class="form-label">Couleur</label><input class="form-input" id="edt-color" type="color" value="#4f46e5"></div>
+  </div>
+  <input type="hidden" id="edt-id">
+  <div class="form-actions">
+    <button class="btn btn-secondary" onclick="closeModal('edt-modal')">Annuler</button>
+    <button class="btn btn-danger btn-sm" id="edt-delete-btn" onclick="deleteEdtEntry()" style="display:none"><i class="ti ti-trash"></i></button>
+    <button class="btn btn-primary" style="flex:2" onclick="saveEdtEntry()"><i class="ti ti-device-floppy"></i> Enregistrer</button>
+  </div>
+</div>
+</div>
+
+<!-- Exam Modal -->
+<div class="modal-overlay" id="exam-modal">
+<div class="modal">
+  <div class="modal-hd"><div class="modal-title"><i class="ti ti-writing"></i> <span id="exam-modal-title">Ajouter un examen</span></div><button class="close-btn" onclick="closeModal('exam-modal')"><i class="ti ti-x"></i></button></div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Matière *</label><input class="form-input" id="ex-matiere" placeholder="Mécanique des fluides"></div>
+    <div class="form-group"><label class="form-label">Type</label>
+      <select class="form-input" id="ex-type">
+        <option value="partiel">Partiel</option><option value="ds">DS (Devoir Surveillé)</option>
+        <option value="tp">TP noté</option><option value="oral">Oral</option><option value="projet">Projet</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Date *</label><input class="form-input" id="ex-date" type="date"></div>
+    <div class="form-group"><label class="form-label">Heure</label><input class="form-input" id="ex-heure" type="time" value="08:00"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Salle</label><input class="form-input" id="ex-salle" placeholder="Amphi A"></div>
+    <div class="form-group"><label class="form-label">Durée</label><input class="form-input" id="ex-duree" placeholder="2h"></div>
+  </div>
+  <div class="form-group"><label class="form-label">Programme / Chapitres à réviser</label><textarea class="form-input" id="ex-programme" placeholder="Chapitres 1 à 5, TD 1, 2, 3..."></textarea></div>
+  <div class="form-group"><label class="form-label">Matière liée (cours)</label>
+    <select class="form-input" id="ex-subject-link"><option value="">— Aucune liaison —</option></select>
+  </div>
+  <input type="hidden" id="ex-id">
+  <div class="form-actions">
+    <button class="btn btn-secondary" onclick="closeModal('exam-modal')">Annuler</button>
+    <button class="btn btn-danger btn-sm" id="exam-delete-btn" onclick="deleteExam()" style="display:none"><i class="ti ti-trash"></i></button>
+    <button class="btn btn-primary" style="flex:2" onclick="saveExam()"><i class="ti ti-device-floppy"></i> Enregistrer</button>
+  </div>
+</div>
+</div>
+
+<!-- Rendu Modal (form) -->
+<div class="modal-overlay" id="rendu-modal">
+<div class="modal">
+  <div class="modal-hd"><div class="modal-title"><i class="ti ti-file-upload"></i> <span id="rendu-modal-title">Nouveau rendu</span></div><button class="close-btn" onclick="closeModal('rendu-modal')"><i class="ti ti-x"></i></button></div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Titre du travail *</label><input class="form-input" id="rd-titre" placeholder="Rapport TP Thermodynamique"></div>
+    <div class="form-group"><label class="form-label">Matière</label><input class="form-input" id="rd-matiere" placeholder="Thermodynamique"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Date limite *</label><input class="form-input" id="rd-date" type="date"></div>
+    <div class="form-group"><label class="form-label">Heure limite</label><input class="form-input" id="rd-heure" type="time" value="23:59"></div>
+  </div>
+  <div class="form-group"><label class="form-label">Sujet / Énoncé</label><textarea class="form-input" id="rd-sujet" placeholder="Collez ici l'énoncé ou la description du travail à rendre..." style="min-height:120px"></textarea></div>
+  <div class="form-group"><label class="form-label">Lien vers le sujet (URL)</label><input class="form-input" id="rd-lien" placeholder="https://moodle.ipsa.fr/..."></div>
+  <div class="form-group"><label class="form-label">Rendu via</label>
+    <select class="form-input" id="rd-via"><option value="moodle">Moodle</option><option value="email">Email prof</option><option value="papier">Papier</option><option value="autre">Autre</option></select>
+  </div>
+  <input type="hidden" id="rd-id">
+  <div class="form-actions">
+    <button class="btn btn-secondary" onclick="closeModal('rendu-modal')">Annuler</button>
+    <button class="btn btn-danger btn-sm" id="rendu-delete-btn" onclick="deleteRendu()" style="display:none"><i class="ti ti-trash"></i></button>
+    <button class="btn btn-primary" style="flex:2" onclick="saveRendu()"><i class="ti ti-device-floppy"></i> Enregistrer</button>
+  </div>
+</div>
+</div>
+
+<!-- Rendu Detail Modal (viewer) -->
+<div class="modal-overlay" id="rendu-view-modal">
+<div class="modal">
+  <div class="modal-hd"><div class="modal-title"><i class="ti ti-file-description"></i> Détail du rendu</div><button class="close-btn" onclick="closeModal('rendu-view-modal')"><i class="ti ti-x"></i></button></div>
+  <div id="rendu-view-content"></div>
+</div>
+</div>
+
+<!-- Subject Modal -->
+<div class="modal-overlay" id="subject-modal">
+<div class="modal">
+  <div class="modal-hd"><div class="modal-title"><i class="ti ti-folder"></i> Nouvelle matière</div><button class="close-btn" onclick="closeModal('subject-modal')"><i class="ti ti-x"></i></button></div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Nom de la matière *</label><input class="form-input" id="subj-name" placeholder="Mécanique des Fluides"></div>
+    <div class="form-group"><label class="form-label">Emoji / Icône</label><input class="form-input" id="subj-icon" placeholder="🔧" maxlength="4"></div>
+  </div>
+  <div class="form-group"><label class="form-label">Couleur d'accent</label><input class="form-input" id="subj-color" type="color" value="#4f46e5"></div>
+  <div class="form-group"><label class="form-label">Enseignant responsable</label><input class="form-input" id="subj-prof" placeholder="M. Dupont"></div>
+  <div class="form-actions">
+    <button class="btn btn-secondary" onclick="closeModal('subject-modal')">Annuler</button>
+    <button class="btn btn-primary" style="flex:2" onclick="saveSubject()"><i class="ti ti-device-floppy"></i> Créer la matière</button>
+  </div>
+</div>
+</div>
+
+<!-- Chapter Modal -->
+<div class="modal-overlay" id="chapter-modal">
+<div class="modal">
+  <div class="modal-hd"><div class="modal-title"><i class="ti ti-file-text"></i> Ajouter un chapitre / TD</div><button class="close-btn" onclick="closeModal('chapter-modal')"><i class="ti ti-x"></i></button></div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Titre *</label><input class="form-input" id="ch-title" placeholder="Chapitre 3 — Écoulements turbulents"></div>
+    <div class="form-group"><label class="form-label">Type</label>
+      <select class="form-input" id="ch-type"><option value="cours">Cours</option><option value="td">TD</option><option value="tp">TP</option><option value="annale">Annale</option><option value="fiche">Fiche de révision</option></select>
+    </div>
+  </div>
+  <div class="form-group"><label class="form-label">Lien / URL</label><input class="form-input" id="ch-url" placeholder="https://moodle.ipsa.fr/..."></div>
+  <div class="form-group"><label class="form-label">Notes / Résumé</label><textarea class="form-input" id="ch-notes" placeholder="Notions clés, formules importantes..."></textarea></div>
+  <input type="hidden" id="ch-subject-id">
+  <input type="hidden" id="ch-id">
+  <div class="form-actions">
+    <button class="btn btn-secondary" onclick="closeModal('chapter-modal')">Annuler</button>
+    <button class="btn btn-danger btn-sm" id="ch-delete-btn" onclick="deleteChapter()" style="display:none"><i class="ti ti-trash"></i></button>
+    <button class="btn btn-primary" style="flex:2" onclick="saveChapter()"><i class="ti ti-device-floppy"></i> Enregistrer</button>
+  </div>
+</div>
+</div>
+
+<!-- News Modal -->
+<div class="modal-overlay" id="news-modal">
+<div class="modal">
+  <div class="modal-hd"><div class="modal-title"><i class="ti ti-news"></i> <span id="news-modal-title">Publier une actualité</span></div><button class="close-btn" onclick="closeModal('news-modal')"><i class="ti ti-x"></i></button></div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Titre *</label><input class="form-input" id="nw-title" placeholder="Absence de M. Dupont — Lundi 15"></div>
+    <div class="form-group"><label class="form-label">Catégorie</label>
+      <select class="form-input" id="nw-cat">
+        <option value="info">ℹ️ Info</option><option value="absent">⚠️ Absence prof</option>
+        <option value="annonce">📢 Annonce</option><option value="urgent">🚨 Urgent</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-group"><label class="form-label">Contenu *</label><textarea class="form-input" id="nw-body" placeholder="Détails de l'annonce..." style="min-height:100px"></textarea></div>
+  <input type="hidden" id="nw-id">
+  <div class="form-actions">
+    <button class="btn btn-secondary" onclick="closeModal('news-modal')">Annuler</button>
+    <button class="btn btn-danger btn-sm" id="nw-delete-btn" onclick="deleteNews()" style="display:none"><i class="ti ti-trash"></i></button>
+    <button class="btn btn-primary" style="flex:2" onclick="saveNews()"><i class="ti ti-device-floppy"></i> Publier</button>
+  </div>
+</div>
+</div>
+
+<!-- Prof Modal -->
+<div class="modal-overlay" id="prof-modal">
+<div class="modal">
+  <div class="modal-hd"><div class="modal-title"><i class="ti ti-user"></i> Ajouter un professeur</div><button class="close-btn" onclick="closeModal('prof-modal')"><i class="ti ti-x"></i></button></div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Nom du professeur *</label><input class="form-input" id="pr-name" placeholder="M. Dupont"></div>
+    <div class="form-group"><label class="form-label">Matière(s)</label><input class="form-input" id="pr-matiere" placeholder="Mécanique, Thermodynamique"></div>
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-secondary" onclick="closeModal('prof-modal')">Annuler</button>
+    <button class="btn btn-primary" style="flex:2" onclick="saveProf()"><i class="ti ti-device-floppy"></i> Enregistrer</button>
+  </div>
+</div>
+</div>
+
+<!-- Rating Modal -->
+<div class="modal-overlay" id="rating-modal">
+<div class="modal">
+  <div class="modal-hd"><div class="modal-title"><i class="ti ti-star"></i> Déposer une évaluation</div><button class="close-btn" onclick="closeModal('rating-modal')"><i class="ti ti-x"></i></button></div>
+  <div class="form-group"><label class="form-label">Professeur *</label>
+    <select class="form-input" id="rt-prof-select"></select>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+    <div><label class="form-label">Pédagogie</label><div class="stars" id="s-pedagogie" data-val="0"></div></div>
+    <div><label class="form-label">Clarté du sujet</label><div class="stars" id="s-clarte" data-val="0"></div></div>
+    <div><label class="form-label">Disponibilité</label><div class="stars" id="s-dispo" data-val="0"></div></div>
+    <div><label class="form-label">Difficulté (1=facile)</label><div class="stars" id="s-difficulte" data-val="0"></div></div>
+  </div>
+  <div class="form-group"><label class="form-label">Commentaire (anonyme)</label><textarea class="form-input" id="rt-comment" placeholder="Votre avis..."></textarea></div>
+  <div class="form-actions">
+    <button class="btn btn-secondary" onclick="closeModal('rating-modal')">Annuler</button>
+    <button class="btn btn-primary" style="flex:2" onclick="saveRating()"><i class="ti ti-device-floppy"></i> Soumettre</button>
+  </div>
+</div>
+</div>
+
+<!-- Event Modal -->
+<div class="modal-overlay" id="event-modal">
+<div class="modal">
+  <div class="modal-hd"><div class="modal-title"><i class="ti ti-calendar-event"></i> <span id="event-modal-title">Créer un événement</span></div><button class="close-btn" onclick="closeModal('event-modal')"><i class="ti ti-x"></i></button></div>
+  <div class="form-group"><label class="form-label">Titre *</label><input class="form-input" id="ev-title" placeholder="Hackathon IPSA 2025"></div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Date *</label><input class="form-input" id="ev-date" type="date"></div>
+    <div class="form-group"><label class="form-label">Heure</label><input class="form-input" id="ev-heure" type="time" value="18:00"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Lieu</label><input class="form-input" id="ev-lieu" placeholder="Campus IPSA Ivry"></div>
+    <div class="form-group"><label class="form-label">Catégorie</label>
+      <select class="form-input" id="ev-cat">
+        <option value="sport">🏆 Sport / Compétition</option><option value="soiree">🎉 Soirée</option>
+        <option value="conference">🎤 Conférence</option><option value="atelier">🔧 Atelier / Workshop</option>
+        <option value="sortie">🗺️ Sortie</option><option value="bde">🎊 BDE</option><option value="autre">📌 Autre</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-group"><label class="form-label">Description</label><textarea class="form-input" id="ev-desc" placeholder="Détails, lien d'inscription..."></textarea></div>
+  <input type="hidden" id="ev-id">
+  <div class="form-actions">
+    <button class="btn btn-secondary" onclick="closeModal('event-modal')">Annuler</button>
+    <button class="btn btn-danger btn-sm" id="ev-delete-btn" onclick="deleteEvent()" style="display:none"><i class="ti ti-trash"></i></button>
+    <button class="btn btn-primary" style="flex:2" onclick="saveEvent()"><i class="ti ti-device-floppy"></i> Enregistrer</button>
+  </div>
+</div>
+</div>
+
+<!-- Software Modal -->
+<div class="modal-overlay" id="soft-modal">
+<div class="modal wide">
+  <div class="modal-hd"><div class="modal-title"><i class="ti ti-device-desktop"></i> <span id="soft-modal-title">Ajouter un logiciel</span></div><button class="close-btn" onclick="closeModal('soft-modal')"><i class="ti ti-x"></i></button></div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Nom *</label><input class="form-input" id="sf-name" placeholder="MATLAB"></div>
+    <div class="form-group"><label class="form-label">Emoji</label><input class="form-input" id="sf-icon" placeholder="🔬" maxlength="4"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Catégorie</label>
+      <select class="form-input" id="sf-cat">
+        <option value="simulation">Simulation & Calcul</option><option value="cao">CAO / Design</option>
+        <option value="bureau">Suite bureautique</option><option value="code">Développement</option>
+        <option value="analyse">Analyse de données</option><option value="autre">Autre</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Couleur</label><input class="form-input" id="sf-color" type="color" value="#4f46e5"></div>
+  </div>
+  <div class="form-group"><label class="form-label">Description</label><textarea class="form-input" id="sf-desc" placeholder="À quoi sert ce logiciel ?"></textarea></div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Lien téléchargement</label><input class="form-input" id="sf-download" placeholder="https://..."></div>
+    <div class="form-group"><label class="form-label">Licence / Pack</label><input class="form-input" id="sf-licence" placeholder="Ex: Licence étudiante IPSA"></div>
+  </div>
+  <div class="form-group"><label class="form-label">Tutoriels (1 par ligne : "Titre | URL")</label><textarea class="form-input" id="sf-tutos" placeholder="Installation MATLAB | https://youtu.be/...&#10;Premiers pas | https://..."></textarea></div>
+  <input type="hidden" id="sf-id">
+  <div class="form-actions">
+    <button class="btn btn-secondary" onclick="closeModal('soft-modal')">Annuler</button>
+    <button class="btn btn-danger btn-sm" id="sf-delete-btn" onclick="deleteSoft()" style="display:none"><i class="ti ti-trash"></i></button>
+    <button class="btn btn-primary" style="flex:2" onclick="saveSoft()"><i class="ti ti-device-floppy"></i> Enregistrer</button>
+  </div>
+</div>
+</div>
+
+<!-- Software Tutorial Modal -->
+<div class="modal-overlay" id="tuto-modal">
+<div class="modal wide">
+  <div class="modal-hd"><div class="modal-title" id="tuto-modal-title"><i class="ti ti-book"></i> Tutoriels</div><button class="close-btn" onclick="closeModal('tuto-modal')"><i class="ti ti-x"></i></button></div>
+  <div id="tuto-modal-content"></div>
+</div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════
+   DATA LAYER
+══════════════════════════════════════════════════════ */
+const S = {
+  get(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch{return null}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
+};
+
+const DEFAULT_ADMIN={id:'admin-root',email:'admin@ipsa.fr',password:'Admin2025!',name:'Administrateur',prenom:'Admin',nom:'IPSA',promo:'Admin',role:'admin',color:'#e5395f',createdAt:Date.now()};
+
+function initData(){
+  if(!S.get('ipsa_users')){S.set('ipsa_users',[DEFAULT_ADMIN])}
+  if(!S.get('ipsa_examens')){S.set('ipsa_examens',getSampleExamens())}
+  if(!S.get('ipsa_rendus')){S.set('ipsa_rendus',getSampleRendus())}
+  if(!S.get('ipsa_subjects')){S.set('ipsa_subjects',getSampleSubjects())}
+  if(!S.get('ipsa_news')){S.set('ipsa_news',getSampleNews())}
+  if(!S.get('ipsa_profs')){S.set('ipsa_profs',getSampleProfs())}
+  if(!S.get('ipsa_events')){S.set('ipsa_events',getSampleEvents())}
+  if(!S.get('ipsa_softs')){S.set('ipsa_softs',getSampleSofts())}
+  if(!S.get('ipsa_edt')){S.set('ipsa_edt',getSampleEdt())}
+  if(!S.get('ipsa_ratings')){S.set('ipsa_ratings',[])}
+}
+
+/* ══════════════════ SAMPLE DATA ══════════════════ */
+const today=new Date();
+const d=(n,t='')=>{const x=new Date(today);x.setDate(x.getDate()+n);const s=x.toISOString().split('T')[0];return t?s+'T'+t:s};
+
+function getSampleExamens(){return[
+  {id:1,matiere:'Mécanique des Fluides',type:'partiel',date:d(12),heure:'08:00',salle:'Amphi A',duree:'2h',programme:'Chapitres 1 à 5 — TD 1, 2, 3',subjectLink:''},
+  {id:2,matiere:'Automatique S5',type:'ds',date:d(3),heure:'14:00',salle:'Salle B12',duree:'1h30',programme:'Cours complet — TD 4 et 5',subjectLink:''},
+  {id:3,matiere:'Thermodynamique',type:'partiel',date:d(25),heure:'08:00',salle:'Amphi B',duree:'2h',programme:'Chapitres 1 à 7',subjectLink:''},
+  {id:4,matiere:'Mathématiques Appliquées',type:'ds',date:d(7),heure:'10:00',salle:'A204',duree:'2h',programme:'Algèbre linéaire, Séries de Fourier',subjectLink:''},
+]}
+
+function getSampleRendus(){return[
+  {id:1,titre:'Rapport TP Thermodynamique n°2',matiere:'Thermodynamique',date:d(4),heure:'23:59',sujet:'Analyser les cycles thermodynamiques observés lors du TP n°2. Comparer les résultats expérimentaux avec le modèle théorique. Inclure les courbes P-V et T-S. Format : 10 pages max, LaTeX ou Word.',lien:'https://moodle.ipsa.fr',via:'moodle'},
+  {id:2,titre:'Projet Matlab — Simulation numérique',matiere:'Méthodes Numériques',date:d(10),heure:'18:00',sujet:'Implémenter en Matlab la méthode des différences finies pour résoudre une EDP de diffusion. Rendre un script commenté + rapport de 5 pages.',lien:'',via:'email'},
+  {id:3,titre:'Journal de bord — Semaine 4',matiere:'Apprentissage Entreprise',date:d(2),heure:'23:59',sujet:'Rédiger le journal de bord de la semaine en entreprise. Minimum 1 page. Décrire les missions effectuées, les compétences acquises et les difficultés rencontrées.',lien:'https://moodle.ipsa.fr/journal',via:'moodle'},
+]}
+
+function getSampleSubjects(){return[
+  {id:'s1',name:'Mécanique des Fluides',icon:'💧',color:'#4f46e5',prof:'M. Bernard',chapters:[
+    {id:'c1',title:'Chapitre 1 — Statique des fluides',type:'cours',url:'',notes:'Pression, loi de Pascal'},
+    {id:'c2',title:'TD 1 — Exercices statique',type:'td',url:'',notes:''},
+    {id:'c3',title:'Chapitre 2 — Dynamique (Bernoulli)',type:'cours',url:'',notes:'Équation de Bernoulli, conservation'},
+  ]},
+  {id:'s2',name:'Automatique S5',icon:'⚙️',color:'#d97706',prof:'Mme. Laurent',chapters:[
+    {id:'c4',title:'Chapitre 1 — Modélisation',type:'cours',url:'',notes:'Transformée de Laplace'},
+    {id:'c5',title:'TD 4 — Correcteurs PID',type:'td',url:'',notes:'Critère de Routh'},
+  ]},
+  {id:'s3',name:'Thermodynamique',icon:'🔥',color:'#e5395f',prof:'M. Dupont',chapters:[
+    {id:'c6',title:'Chapitre 3 — Cycles moteurs',type:'cours',url:'',notes:''},
+  ]},
+  {id:'s4',name:'Mathématiques Appliquées',icon:'∑',color:'#16a34a',prof:'Mme. Cohen',chapters:[]},
+]}
+
+function getSampleNews(){return[
+  {id:1,title:'Absence M. Dupont — Thermodynamique',cat:'absent',body:'M. Dupont sera absent le jeudi 16 janvier. Le cours de Thermodynamique est annulé. Une séance de rattrapage sera programmée ultérieurement.',author:'Admin',date:d(-1),createdAt:Date.now()-86400000},
+  {id:2,title:'Rappel : remise des journaux de bord',cat:'annonce',body:'Pensez à remettre vos journaux de bord pour la semaine 4 avant dimanche 23h59 sur Moodle.',author:'Admin',date:d(0),createdAt:Date.now()-3600000*2},
+  {id:3,title:'Nouveau pack MATLAB disponible',cat:'info',body:'Un pack MATLAB avec les toolboxes Signal Processing et Control System est maintenant disponible pour tous les étudiants. Voir la section Logiciels.',author:'Admin',date:d(0),createdAt:Date.now()-3600000},
+]}
+
+function getSampleProfs(){return[
+  {id:'p1',name:'M. Bernard',matiere:'Mécanique des Fluides',color:'#4f46e5'},
+  {id:'p2',name:'Mme. Laurent',matiere:'Automatique S5',color:'#d97706'},
+  {id:'p3',name:'M. Dupont',matiere:'Thermodynamique',color:'#e5395f'},
+  {id:'p4',name:'Mme. Cohen',matiere:'Mathématiques',color:'#16a34a'},
+]}
+
+function getSampleEvents(){return[
+  {id:1,title:'Forum des métiers de l\'aérospatial',cat:'conference',date:d(14),heure:'14:00',lieu:'Amphi IPSA',desc:'Rencontres avec des professionnels du secteur aérospatial. 20+ entreprises présentes.'},
+  {id:2,title:'Soirée BDE — Rentrée Apprentis',cat:'soiree',date:d(8),heure:'20:00',lieu:'Salle polyvalente',desc:'Soirée de rentrée organisée par le BDE. Entrée : 5€ avec verre d\'accueil.'},
+  {id:3,title:'Hackathon Aéro-Innovation',cat:'sport',date:d(21),heure:'09:00',lieu:'Fablab IPSA',desc:'48h pour concevoir un drone autonome. Équipes de 4 max. Inscription sur le Discord BDE.'},
+]}
+
+function getSampleSofts(){return[
+  {id:'sf1',name:'MATLAB',icon:'🔬',cat:'simulation',color:'#d97706',desc:'Environnement de calcul numérique et simulation. Indispensable pour les cours de méthodes numériques et d\'automatique.',download:'https://fr.mathworks.com/academia',licence:'Licence étudiante IPSA (voir admin)',tutos:'Installation MATLAB | https://fr.mathworks.com/videos/matlab-installation\nPremiers pas en MATLAB | https://fr.mathworks.com/learn/tutorials/matlab-onramp.html\nTutoriel Simulink | https://fr.mathworks.com/videos/simulink-quick-start'},
+  {id:'sf2',name:'SolidWorks',icon:'🏗️',cat:'cao',color:'#0284c7',desc:'Logiciel de CAO 3D pour la conception mécanique. Utilisé dans les cours de bureau d\'études.',download:'https://www.solidworks.com/fr/product/students',licence:'Pack CAO IPSA — voir le service informatique',tutos:'Introduction SolidWorks | https://www.youtube.com/watch?v=...\nConception d\'une pièce | https://help.solidworks.com/...'},
+  {id:'sf3',name:'Suite Microsoft 365',icon:'📄',cat:'bureau',color:'#4f46e5',desc:'Word, Excel, PowerPoint, Teams... Accès gratuit avec votre email @ipsa.fr.',download:'https://www.microsoft.com/fr-fr/microsoft-365/education',licence:'Gratuit avec email @ipsa.fr',tutos:'Activer Office 365 étudiant | https://support.microsoft.com/fr-fr\nTeams pour IPSA | https://teams.microsoft.com'},
+  {id:'sf4',name:'Python + Anaconda',icon:'🐍',cat:'code',color:'#16a34a',desc:'Environnement Python scientifique avec NumPy, Pandas, Matplotlib. Pour les cours de méthodes numériques et data.',download:'https://www.anaconda.com/download',licence:'Open source — gratuit',tutos:'Installation Anaconda | https://docs.anaconda.com/anaconda/install\nCours Python débutant | https://openclassrooms.com/fr/courses/7168871\nNumPy en 1h | https://numpy.org/learn'},
+]}
+
+function getSampleEdt(){return[
+  {id:'e1',matiere:'Mécanique des Fluides',prof:'M. Bernard',jour:1,debut:'08:00',fin:'10:00',salle:'Amphi A',type:'cours'},
+  {id:'e2',matiere:'Automatique S5',prof:'Mme. Laurent',jour:1,debut:'10:15',fin:'12:15',salle:'B204',type:'td'},
+  {id:'e3',matiere:'Thermodynamique',prof:'M. Dupont',jour:2,debut:'08:00',fin:'10:00',salle:'Amphi B',type:'cours'},
+  {id:'e4',matiere:'Math Appliquées',prof:'Mme. Cohen',jour:2,debut:'10:15',fin:'12:15',salle:'A101',type:'td'},
+  {id:'e5',matiere:'TP Mécanique',prof:'M. Bernard',jour:3,debut:'13:30',fin:'17:30',salle:'Labo Méca',type:'tp'},
+  {id:'e6',matiere:'Méthodes Numériques',prof:'M. Martin',jour:4,debut:'08:00',fin:'10:00',salle:'Info 1',type:'td'},
+  {id:'e7',matiere:'Automatique S5',prof:'Mme. Laurent',jour:5,debut:'08:00',fin:'10:00',salle:'Amphi A',type:'cours'},
+]}
+
+/* ══════════════════ AUTH ══════════════════ */
+let CU=null;// current user
+
+function doLogin(){
+  const email=document.getElementById('l-email').value.trim().toLowerCase();
+  const pass=document.getElementById('l-password').value;
+  const users=S.get('ipsa_users')||[];
+  const user=users.find(u=>u.email.toLowerCase()===email&&u.password===pass);
+  if(!user){showLoginError('Email ou mot de passe incorrect');return}
+  CU=user;S.set('ipsa_session',user.id);
+  startApp();
+}
+
+function doRegister(){
+  const fn=document.getElementById('r-firstname').value.trim();
+  const ln=document.getElementById('r-lastname').value.trim();
+  const email=document.getElementById('r-email').value.trim().toLowerCase();
+  const promo=document.getElementById('r-promo').value;
+  const pass=document.getElementById('r-password').value;
+  if(!fn||!ln||!email||!pass){showLoginError('Tous les champs sont requis');return}
+  if(pass.length<6){showLoginError('Mot de passe trop court (6 caractères min)');return}
+  const users=S.get('ipsa_users')||[];
+  if(users.find(u=>u.email.toLowerCase()===email)){showLoginError('Cet email est déjà utilisé');return}
+  const colors=['#4f46e5','#e5395f','#16a34a','#d97706','#0284c7'];
+  const user={id:'u'+Date.now(),email,password:pass,name:fn+' '+ln,prenom:fn,nom:ln,promo,role:'student',color:colors[users.length%colors.length],createdAt:Date.now()};
+  users.push(user);S.set('ipsa_users',users);
+  CU=user;S.set('ipsa_session',user.id);
+  startApp();
+}
+
+function doLogout(){S.set('ipsa_session',null);CU=null;document.getElementById('app').style.display='none';document.getElementById('login-screen').style.display='flex';document.getElementById('l-email').value='';document.getElementById('l-password').value=''}
+
+function showLoginError(msg){const el=document.getElementById('login-error');el.textContent=msg;el.style.display='block';setTimeout(()=>el.style.display='none',3500)}
+
+function switchLoginTab(tab){document.querySelectorAll('.login-tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.login-form-section').forEach(s=>s.classList.remove('active'));event.target.classList.add('active');document.getElementById('tab-'+tab).classList.add('active')}
+
+function startApp(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  // Set header
+  const av=document.getElementById('header-avatar');
+  av.textContent=CU.name.split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase();
+  av.style.background=CU.color+'22';av.style.color=CU.color;
+  document.getElementById('header-name').textContent=CU.name.split(' ')[0];
+  if(CU.role==='admin'){
+    document.getElementById('admin-section').style.display='block';
+    document.getElementById('user-chip').classList.add('admin-chip');
+    document.getElementById('btn-add-news').style.display='flex';
+    document.getElementById('btn-add-soft').style.display='flex';
+    document.getElementById('btn-add-exam').style.display='flex';
+    document.getElementById('btn-add-rendu').style.display='flex';
+    document.getElementById('btn-add-event').style.display='flex';
+  }
+  showPage('dashboard');
+  updateBadges();
+}
+
+/* ══════════════════ NAVIGATION ══════════════════ */
+let currentPage='dashboard';
+
+function showPage(page){
+  document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>{if(n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+page+"'"))n.classList.add('active')});
+  currentPage=page;
+  const renders={dashboard:renderDashboard,edt:renderEdt,examens:renderExamens,rendus:renderRendus,cours:()=>showSubjectList(),actualites:renderNews,notations:renderProfs,evenements:renderEvents,logiciels:renderSofts,admin:renderAdmin};
+  if(renders[page])renders[page]();
+}
+
+/* ══════════════════ UTILS ══════════════════ */
+function uid(){return Date.now()+Math.random().toString(36).slice(2)}
+function fDate(d){if(!d)return'—';return new Date(d).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'})}
+function fDateShort(d){if(!d)return'—';return new Date(d).toLocaleDateString('fr-FR',{day:'2-digit',month:'short'})}
+function daysLeft(d){if(!d)return999;return Math.ceil((new Date(d)-new Date())/86400000)}
+function cdClass(n){return n<0?'cd-ok':n<=3?'cd-urgent':n<=7?'cd-soon':'cd-ok'}
+function cdLabel(n){if(n<0)return'Passé';if(n===0)return'Aujourd\'hui!';if(n===1)return'Demain!';return'J-'+n}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+function openModal(id){document.getElementById(id).classList.add('open')}
+function toast(msg,type=''){const t=document.getElementById('toast');document.getElementById('toast-msg').textContent=msg;t.className='toast '+(type||'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800)}
+function isAdmin(){return CU&&CU.role==='admin'}
+
+function updateBadges(){
+  const exs=S.get('ipsa_examens')||[];
+  const rds=S.get('ipsa_rendus')||[];
+  const news=S.get('ipsa_news')||[];
+  const urgentEx=exs.filter(e=>daysLeft(e.date)<=7&&daysLeft(e.date)>=0).length;
+  const urgentRd=rds.filter(r=>daysLeft(r.date)<=3&&daysLeft(r.date)>=0).length;
+  document.getElementById('badge-examens').textContent=urgentEx;
+  document.getElementById('badge-examens').style.display=urgentEx?'':'none';
+  document.getElementById('badge-rendus').textContent=urgentRd;
+  document.getElementById('badge-rendus').style.display=urgentRd?'':'none';
+  const recentNews=news.filter(n=>(Date.now()-n.createdAt)<86400000*2);
+  document.getElementById('badge-actu').style.display=recentNews.length?'':'none';
+  document.getElementById('notif-dot').style.display=recentNews.length?'':'none';
+}
+
+/* ══════════════════ DASHBOARD ══════════════════ */
+function renderDashboard(){
+  document.getElementById('dash-date').textContent=new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const exs=S.get('ipsa_examens')||[];
+  const rds=S.get('ipsa_rendus')||[];
+  const news=S.get('ipsa_news')||[];
+  const evs=S.get('ipsa_events')||[];
+
+  // Stats
+  const urgentEx=exs.filter(e=>daysLeft(e.date)<=7&&daysLeft(e.date)>=0);
+  const urgentRd=rds.filter(r=>daysLeft(r.date)<=3&&daysLeft(r.date)>=0);
+  document.getElementById('dash-stats').innerHTML=`
+    <div class="stat-card c-red"><div class="stat-num">${urgentEx.length}</div><div class="stat-lbl">⚠️ Examens dans 7j</div></div>
+    <div class="stat-card c-orange"><div class="stat-num">${urgentRd.length}</div><div class="stat-lbl">📤 Rendus dans 3j</div></div>
+    <div class="stat-card c-purple"><div class="stat-num">${exs.length}</div><div class="stat-lbl">📝 Examens total</div></div>
+    <div class="stat-card c-green"><div class="stat-num">${evs.filter(e=>daysLeft(e.date)>=0).length}</div><div class="stat-lbl">🎉 Événements à venir</div></div>
+  `;
+
+  // Reminder banners
+  let bannerHTML='';
+  urgentEx.forEach(ex=>{
+    const subj=S.get('ipsa_subjects')||[];
+    const linked=subj.find(s=>s.id===ex.subjectLink||(s.name.toLowerCase().includes(ex.matiere.toLowerCase().split(' ')[0])));
+    if(linked&&linked.chapters.length){
+      bannerHTML+=`<div class="reminder-banner">
+        <h3><i class="ti ti-alarm"></i> Révisions — ${ex.matiere} dans ${daysLeft(ex.date)} jour(s)</h3>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">${ex.programme||'Programme non renseigné'}</div>
+        <div class="reminder-chips">${linked.chapters.map(c=>`<span class="reminder-chip" onclick="showPage('cours')">${c.title}</span>`).join('')}</div>
+      </div>`;
+    }
+  });
+  document.getElementById('reminder-zone').innerHTML=bannerHTML;
+
+  // Examens
+  const sortedEx=exs.filter(e=>daysLeft(e.date)>=0).sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(0,4);
+  document.getElementById('dash-examens').innerHTML=sortedEx.length?sortedEx.map(e=>`
+    <div class="upcoming-item">
+      <div class="upcoming-dot" style="background:${daysLeft(e.date)<=3?'#e5395f':daysLeft(e.date)<=7?'#d97706':'#16a34a'}"></div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:500">${e.matiere}</div><div style="font-size:11px;color:var(--muted)">${fDateShort(e.date)} — ${e.type.toUpperCase()}</div></div>
+      <span class="countdown ${cdClass(daysLeft(e.date))}">${cdLabel(daysLeft(e.date))}</span>
+    </div>`).join(''):`<div class="empty" style="padding:20px"><i class="ti ti-check"></i><p>Aucun examen imminent</p></div>`;
+
+  // Rendus
+  const sortedRd=rds.filter(r=>daysLeft(r.date)>=0).sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(0,4);
+  document.getElementById('dash-rendus').innerHTML=sortedRd.length?sortedRd.map(r=>`
+    <div class="upcoming-item">
+      <div class="upcoming-dot" style="background:${daysLeft(r.date)<=2?'#e5395f':daysLeft(r.date)<=5?'#d97706':'#4f46e5'}"></div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:500">${r.titre}</div><div style="font-size:11px;color:var(--muted)">${r.matiere} — ${fDateShort(r.date)}</div></div>
+      <span class="countdown ${cdClass(daysLeft(r.date))}">${cdLabel(daysLeft(r.date))}</span>
+    </div>`).join(''):`<div class="empty" style="padding:20px"><i class="ti ti-check"></i><p>Aucun rendu imminent</p></div>`;
+
+  // News
+  document.getElementById('dash-news').innerHTML=(news.slice(0,3)||[]).map(n=>`
+    <div class="upcoming-item"><div style="flex:1"><div style="font-size:13px;font-weight:500">${n.title}</div><div style="font-size:11px;color:var(--muted)">${fDateShort(n.date)}</div></div></div>`).join('')||`<div class="empty" style="padding:20px"><i class="ti ti-news"></i><p>Aucune actualité</p></div>`;
+
+  // Events
+  document.getElementById('dash-events').innerHTML=evs.filter(e=>daysLeft(e.date)>=0).slice(0,3).map(e=>`
+    <div class="upcoming-item"><div style="flex:1"><div style="font-size:13px;font-weight:500">${e.title}</div><div style="font-size:11px;color:var(--muted)">${fDateShort(e.date)} — ${e.lieu}</div></div><span class="countdown cd-ok">${cdLabel(daysLeft(e.date))}</span></div>`).join('')||`<div class="empty" style="padding:20px"><i class="ti ti-calendar"></i><p>Aucun événement</p></div>`;
+}
+
+/* ══════════════════ EDT ══════════════════ */
+const JOURS=['','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+const HOURS=['08:30','09:30','10:30','11:30','12:30','13:30','14:30','15:30','16:30','17:30','18:30','19:30','20:30','21:30','22:30'];
+let edtEditId=null;
+
+function renderEdt(){
+  const entries=S.get('ipsa_edt')||[];
+  let html=`<div class="edt-header" style="background:var(--surface)">Heure</div>`;
+  for(let j=1;j<=6;j++)html+=`<div class="edt-header">${JOURS[j]}</div>`;
+  
+  HOURS.forEach((h,hi)=>{
+    html+=`<div class="edt-time">${h}</div>`;
+    for(let j=1;j<=6;j++){
+      const slot=entries.filter(e=>e.jour==j&&e.debut<=h&&e.fin>h);
+      if(slot.length){
+        const e=slot[0];
+        html+=`<div class="edt-cell" onclick="openEdtModal('${e.id}')"><div class="edt-course type-${e.type}">
+          <div class="edt-course-name">${e.matiere}</div>
+          <div class="edt-course-room">${e.salle}${e.prof?' · '+e.prof.split(' ').pop():''}</div>
+          <div class="edt-course-room">${e.debut}–${e.fin}</div>
+        </div></div>`;
+      } else {
+        html+=`<div class="edt-cell" onclick="openEdtModalEmpty(${j},'${h}')"></div>`;
+      }
+    }
+  });
+  document.getElementById('edt-grid').innerHTML=html;
+}
+
+function openEdtModal(id=null){
+  edtEditId=id;
+  document.getElementById('edt-modal-title').textContent=id?'Modifier le cours':'Ajouter un cours';
+  document.getElementById('edt-delete-btn').style.display=id?'flex':'none';
+  if(id){const e=(S.get('ipsa_edt')||[]).find(x=>x.id===id);if(e){document.getElementById('edt-matiere').value=e.matiere;document.getElementById('edt-prof').value=e.prof||'';document.getElementById('edt-jour').value=e.jour;document.getElementById('edt-type').value=e.type;document.getElementById('edt-debut').value=e.debut;document.getElementById('edt-fin').value=e.fin;document.getElementById('edt-salle').value=e.salle||'';}}
+  else{document.getElementById('edt-matiere').value='';document.getElementById('edt-prof').value='';document.getElementById('edt-salle').value='';}
+  document.getElementById('edt-id').value=id||'';
+  openModal('edt-modal');
+}
+function openEdtModalEmpty(jour,heure){document.getElementById('edt-jour').value=jour;document.getElementById('edt-debut').value=heure;document.getElementById('edt-fin').value=HOURS[Math.min(HOURS.indexOf(heure)+2,HOURS.length-1)];openEdtModal()}
+
+function saveEdtEntry(){
+  const mat=document.getElementById('edt-matiere').value.trim();if(!mat)return;
+  const entry={id:edtEditId||'e'+uid(),matiere:mat,prof:document.getElementById('edt-prof').value.trim(),jour:+document.getElementById('edt-jour').value,type:document.getElementById('edt-type').value,debut:document.getElementById('edt-debut').value,fin:document.getElementById('edt-fin').value,salle:document.getElementById('edt-salle').value.trim()};
+  let data=S.get('ipsa_edt')||[];
+  if(edtEditId)data=data.map(e=>e.id===edtEditId?entry:e);else data.push(entry);
+  S.set('ipsa_edt',data);closeModal('edt-modal');renderEdt();toast('Cours enregistré ✓','success');
+}
+function deleteEdtEntry(){let data=(S.get('ipsa_edt')||[]).filter(e=>e.id!==edtEditId);S.set('ipsa_edt',data);closeModal('edt-modal');renderEdt();toast('Cours supprimé')}
+
+/* ══════════════════ EXAMENS ══════════════════ */
+let examEditId=null;
+
+function renderExamens(){
+  const exs=S.get('ipsa_examens')||[];
+  const subjs=S.get('ipsa_subjects')||[];
+  // Update subject link dropdown
+  const sel=document.getElementById('ex-subject-link');
+  sel.innerHTML='<option value="">— Aucune liaison —</option>'+subjs.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+
+  // Stats
+  const upcoming=exs.filter(e=>daysLeft(e.date)>=0);
+  const urgent=exs.filter(e=>daysLeft(e.date)>=0&&daysLeft(e.date)<=7);
+  document.getElementById('exam-stats').innerHTML=`
+    <div class="stat-card c-purple"><div class="stat-num">${exs.length}</div><div class="stat-lbl">Examens programmés</div></div>
+    <div class="stat-card c-red"><div class="stat-num">${urgent.length}</div><div class="stat-lbl">⚠️ Dans les 7 prochains jours</div></div>
+    <div class="stat-card c-green"><div class="stat-num">${upcoming.length}</div><div class="stat-lbl">À venir</div></div>
+  `;
+
+  const sorted=exs.sort((a,b)=>new Date(a.date)-new Date(b.date));
+  document.getElementById('exam-list').innerHTML=sorted.length?sorted.map(e=>{
+    const dl=daysLeft(e.date);
+    const linked=subjs.find(s=>s.id===e.subjectLink);
+    return `<div class="item-row exam-row" onclick="openExamModal('${e.id}')">
+      <div class="item-icon" style="background:${dl<=3&&dl>=0?'rgba(229,57,95,.15)':dl<=7&&dl>=0?'rgba(217,119,6,.15)':'rgba(79,70,229,.1)'}">
+        <i class="ti ti-writing" style="color:${dl<=3&&dl>=0?'#e5395f':dl<=7&&dl>=0?'#d97706':'#6366f1'}"></i>
+      </div>
+      <div class="item-info">
+        <div class="item-title">${e.matiere}</div>
+        <div class="item-meta">${fDate(e.date)} à ${e.heure} — ${e.salle||'—'} — ${e.duree||'—'}
+          ${linked?`<span style="color:var(--accent);margin-left:8px"><i class="ti ti-link" style="font-size:10px"></i> Lié aux cours</span>`:''}
+        </div>
+      </div>
+      <div class="item-right">
+        <span class="tag ${e.type==='partiel'?'tag-partiel':'tag-ds'}">${e.type.toUpperCase()}</span>
+        ${dl>=0?`<span class="countdown ${cdClass(dl)}">${cdLabel(dl)}</span>`:`<span class="countdown" style="background:rgba(136,136,170,.15);color:var(--muted)">Passé</span>`}
+      </div>
+    </div>`;
+  }).join(''):`<div class="empty"><i class="ti ti-writing"></i><p>Aucun examen — Ajoutez-en un !</p></div>`;
+}
+
+function openExamModal(id=null){
+  examEditId=id;
+  document.getElementById('exam-modal-title').textContent=id?'Modifier l\'examen':'Ajouter un examen';
+  document.getElementById('exam-delete-btn').style.display=id?'flex':'none';
+  if(id){const e=(S.get('ipsa_examens')||[]).find(x=>x.id==id);if(e){document.getElementById('ex-matiere').value=e.matiere;document.getElementById('ex-type').value=e.type;document.getElementById('ex-date').value=e.date;document.getElementById('ex-heure').value=e.heure||'';document.getElementById('ex-salle').value=e.salle||'';document.getElementById('ex-duree').value=e.duree||'';document.getElementById('ex-programme').value=e.programme||'';document.getElementById('ex-subject-link').value=e.subjectLink||'';}}
+  else{['ex-matiere','ex-salle','ex-duree','ex-programme'].forEach(i=>document.getElementById(i).value='');}
+  openModal('exam-modal');
+}
+
+function saveExam(){
+  const mat=document.getElementById('ex-matiere').value.trim();const dat=document.getElementById('ex-date').value;
+  if(!mat||!dat)return;
+  const ex={id:examEditId||uid(),matiere:mat,type:document.getElementById('ex-type').value,date:dat,heure:document.getElementById('ex-heure').value,salle:document.getElementById('ex-salle').value,duree:document.getElementById('ex-duree').value,programme:document.getElementById('ex-programme').value,subjectLink:document.getElementById('ex-subject-link').value};
+  let data=S.get('ipsa_examens')||[];
+  if(examEditId)data=data.map(e=>e.id==examEditId?ex:e);else data.push(ex);
+  S.set('ipsa_examens',data);closeModal('exam-modal');renderExamens();updateBadges();toast('Examen enregistré ✓','success');
+}
+function deleteExam(){let data=(S.get('ipsa_examens')||[]).filter(e=>e.id!=examEditId);S.set('ipsa_examens',data);closeModal('exam-modal');renderExamens();updateBadges();toast('Examen supprimé')}
+
+/* ══════════════════ RENDUS ══════════════════ */
+let renduEditId=null;
+
+function renderRendus(){
+  const rds=S.get('ipsa_rendus')||[];
+  const sorted=rds.sort((a,b)=>new Date(a.date)-new Date(b.date));
+  document.getElementById('rendu-list').innerHTML=sorted.length?sorted.map(r=>{
+    const dl=daysLeft(r.date);
+    return `<div class="item-row" onclick="viewRendu('${r.id}')">
+      <div class="item-icon" style="background:${dl<=2&&dl>=0?'rgba(229,57,95,.15)':dl<=5&&dl>=0?'rgba(217,119,6,.15)':'rgba(79,70,229,.1)'}">
+        <i class="ti ti-file-upload" style="color:${dl<=2&&dl>=0?'#e5395f':dl<=5&&dl>=0?'#d97706':'#6366f1'}"></i>
+      </div>
+      <div class="item-info">
+        <div class="item-title">${r.titre}</div>
+        <div class="item-meta">${r.matiere} — Rendu ${r.via} — ${fDate(r.date)} à ${r.heure}</div>
+      </div>
+      <div class="item-right">
+        <span class="tag tag-rendu">📤 RENDU</span>
+        ${dl>=0?`<span class="countdown ${cdClass(dl)}">${cdLabel(dl)}</span>`:`<span class="countdown" style="background:rgba(136,136,170,.15);color:var(--muted)">Passé</span>`}
+        ${isAdmin()?`<button class="btn btn-icon btn-secondary" onclick="event.stopPropagation();openRenduModal('${r.id}')"><i class="ti ti-edit"></i></button>`:''}
+      </div>
+    </div>`;
+  }).join(''):`<div class="empty"><i class="ti ti-file-upload"></i><p>Aucun rendu — Ajoutez-en un !</p></div>`;
+}
+
+function viewRendu(id){
+  const r=(S.get('ipsa_rendus')||[]).find(x=>x.id==id);if(!r)return;
+  document.getElementById('rendu-view-content').innerHTML=`
+    <div style="margin-bottom:16px">
+      <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:6px">${r.titre}</div>
+      <div style="font-size:13px;color:var(--muted)">${r.matiere}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+      <div class="highlight-box"><div class="form-label">Date limite</div><div style="font-size:15px;font-weight:600;color:${daysLeft(r.date)<=2?'#e5395f':'var(--text)'}">${fDate(r.date)} à ${r.heure}</div></div>
+      <div class="highlight-box"><div class="form-label">Rendu via</div><div style="font-size:15px;font-weight:600">${r.via.charAt(0).toUpperCase()+r.via.slice(1)}</div></div>
+    </div>
+    ${r.sujet?`<div style="margin-bottom:16px"><div class="form-label" style="margin-bottom:8px">📋 Énoncé / Sujet</div><div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:13px;line-height:1.8;color:var(--text);white-space:pre-wrap">${r.sujet}</div></div>`:''}
+    ${r.lien?`<a href="${r.lien}" target="_blank" class="btn btn-primary" style="text-decoration:none"><i class="ti ti-external-link"></i> Ouvrir le lien du sujet</a>`:''}
+    ${isAdmin()?`<button class="btn btn-secondary" style="margin-left:8px" onclick="closeModal('rendu-view-modal');openRenduModal('${r.id}')"><i class="ti ti-edit"></i> Modifier</button>`:''}
+  `;
+  openModal('rendu-view-modal');
+}
+
+function openRenduModal(id=null){
+  renduEditId=id;
+  document.getElementById('rendu-modal-title').textContent=id?'Modifier le rendu':'Nouveau rendu';
+  document.getElementById('rendu-delete-btn').style.display=id?'flex':'none';
+  if(id){const r=(S.get('ipsa_rendus')||[]).find(x=>x.id==id);if(r){document.getElementById('rd-titre').value=r.titre;document.getElementById('rd-matiere').value=r.matiere;document.getElementById('rd-date').value=r.date;document.getElementById('rd-heure').value=r.heure;document.getElementById('rd-sujet').value=r.sujet||'';document.getElementById('rd-lien').value=r.lien||'';document.getElementById('rd-via').value=r.via;}}
+  else{['rd-titre','rd-matiere','rd-sujet','rd-lien'].forEach(i=>document.getElementById(i).value='');}
+  openModal('rendu-modal');
+}
+function saveRendu(){
+  const tit=document.getElementById('rd-titre').value.trim();const dat=document.getElementById('rd-date').value;
+  if(!tit||!dat)return;
+  const r={id:renduEditId||uid(),titre:tit,matiere:document.getElementById('rd-matiere').value,date:dat,heure:document.getElementById('rd-heure').value,sujet:document.getElementById('rd-sujet').value,lien:document.getElementById('rd-lien').value,via:document.getElementById('rd-via').value};
+  let data=S.get('ipsa_rendus')||[];
+  if(renduEditId)data=data.map(x=>x.id==renduEditId?r:x);else data.push(r);
+  S.set('ipsa_rendus',data);closeModal('rendu-modal');renderRendus();updateBadges();toast('Rendu enregistré ✓','success');
+}
+function deleteRendu(){let data=(S.get('ipsa_rendus')||[]).filter(x=>x.id!=renduEditId);S.set('ipsa_rendus',data);closeModal('rendu-modal');renderRendus();updateBadges();toast('Rendu supprimé')}
+
+/* ══════════════════ COURS ══════════════════ */
+let currentSubjectId=null;
+
+function showSubjectList(){
+  currentSubjectId=null;
+  document.getElementById('btn-cours-back').style.display='none';
+  document.getElementById('btn-add-subject').style.display='flex';
+  document.getElementById('btn-add-chapter').style.display='none';
+  const subjs=S.get('ipsa_subjects')||[];
+  document.getElementById('cours-content').innerHTML=subjs.length?`
+    <div class="subject-list">${subjs.map(s=>`
+      <div class="subject-card" style="--sc:${s.color}" onclick="showSubjectDetail('${s.id}')">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${s.color}"></div>
+        <span class="subject-icon">${s.icon||'📚'}</span>
+        <div class="subject-name">${s.name}</div>
+        <div class="subject-count">${s.chapters.length} document(s) · ${s.prof||'—'}</div>
+      </div>`).join('')}
+    </div>`:`<div class="empty"><i class="ti ti-books"></i><p>Aucune matière — Créez votre première matière !</p></div>`;
+}
+
+function showSubjectDetail(id){
+  currentSubjectId=id;
+  const subjs=S.get('ipsa_subjects')||[];
+  const subj=subjs.find(s=>s.id===id);if(!subj)return;
+  document.getElementById('btn-cours-back').style.display='flex';
+  document.getElementById('btn-add-subject').style.display='none';
+  document.getElementById('btn-add-chapter').style.display='flex';
+
+  // Check if this subject is linked to an upcoming exam
+  const exs=S.get('ipsa_examens')||[];
+  const linked=exs.filter(e=>e.subjectLink===id&&daysLeft(e.date)>=0&&daysLeft(e.date)<=14);
+  let examAlert='';
+  if(linked.length){
+    examAlert=`<div class="reminder-banner"><h3><i class="ti ti-alarm"></i> Examen lié dans ${daysLeft(linked[0].date)} jour(s) — ${linked[0].matiere}</h3><div style="font-size:12px;color:var(--muted)">${linked[0].programme||'Programme non renseigné'}</div></div>`;
+  }
+
+  document.getElementById('cours-content').innerHTML=`
+    ${examAlert}
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <span style="font-size:36px">${subj.icon||'📚'}</span>
+      <div><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700">${subj.name}</div><div style="font-size:13px;color:var(--muted)">${subj.prof||'Enseignant non renseigné'} · ${subj.chapters.length} document(s)</div></div>
+      ${isAdmin()?`<button class="btn btn-sm btn-danger" style="margin-left:auto" onclick="deleteSubject('${id}')"><i class="ti ti-trash"></i></button>`:''}
+    </div>
+    <div class="chapter-list">${subj.chapters.length?subj.chapters.map(c=>`
+      <div class="chapter-item" onclick="openChapterModal('${id}','${c.id}')">
+        <span class="chapter-type ct-${c.type}">${c.type.toUpperCase()}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.title}</div>
+          ${c.notes?`<div style="font-size:11px;color:var(--muted)">${c.notes}</div>`:''}
+        </div>
+        ${c.url?`<a href="${c.url}" target="_blank" onclick="event.stopPropagation()" class="btn btn-sm btn-secondary"><i class="ti ti-external-link"></i></a>`:''}
+      </div>`).join(''):`<div class="empty"><i class="ti ti-file-plus"></i><p>Aucun document — Ajoutez un chapitre ou TD !</p></div>`}
+    </div>`;
+}
+
+function openSubjectModal(){openModal('subject-modal')}
+function saveSubject(){
+  const name=document.getElementById('subj-name').value.trim();if(!name)return;
+  const s={id:'s'+uid(),name,icon:document.getElementById('subj-icon').value||'📚',color:document.getElementById('subj-color').value,prof:document.getElementById('subj-prof').value.trim(),chapters:[]};
+  let data=S.get('ipsa_subjects')||[];data.push(s);S.set('ipsa_subjects',data);
+  closeModal('subject-modal');showSubjectList();toast('Matière créée ✓','success');
+  document.getElementById('subj-name').value='';document.getElementById('subj-icon').value='';document.getElementById('subj-prof').value='';
+}
+function deleteSubject(id){if(!confirm('Supprimer cette matière et tous ses documents ?'))return;let data=(S.get('ipsa_subjects')||[]).filter(s=>s.id!==id);S.set('ipsa_subjects',data);showSubjectList();toast('Matière supprimée')}
+
+let chapterEditId=null;
+function openChapterModal(subjId=null,chId=null){
+  chapterEditId=chId;
+  const sid=subjId||currentSubjectId;
+  document.getElementById('ch-subject-id').value=sid;
+  document.getElementById('ch-delete-btn').style.display=chId?'flex':'none';
+  if(chId){const subj=(S.get('ipsa_subjects')||[]).find(s=>s.id===sid);const ch=subj?.chapters.find(c=>c.id===chId);if(ch){document.getElementById('ch-title').value=ch.title;document.getElementById('ch-type').value=ch.type;document.getElementById('ch-url').value=ch.url||'';document.getElementById('ch-notes').value=ch.notes||'';}}
+  else{['ch-title','ch-url','ch-notes'].forEach(i=>document.getElementById(i).value='')}
+  openModal('chapter-modal');
+}
+function saveChapter(){
+  const title=document.getElementById('ch-title').value.trim();if(!title)return;
+  const sid=document.getElementById('ch-subject-id').value;
+  const ch={id:chapterEditId||'c'+uid(),title,type:document.getElementById('ch-type').value,url:document.getElementById('ch-url').value,notes:document.getElementById('ch-notes').value};
+  let data=S.get('ipsa_subjects')||[];
+  data=data.map(s=>{if(s.id!==sid)return s;if(chapterEditId)s.chapters=s.chapters.map(c=>c.id===chapterEditId?ch:c);else s.chapters.push(ch);return s});
+  S.set('ipsa_subjects',data);closeModal('chapter-modal');showSubjectDetail(sid);toast('Document enregistré ✓','success');
+}
+function deleteChapter(){
+  const sid=document.getElementById('ch-subject-id').value;
+  let data=(S.get('ipsa_subjects')||[]).map(s=>{if(s.id!==sid)return s;s.chapters=s.chapters.filter(c=>c.id!==chapterEditId);return s});
+  S.set('ipsa_subjects',data);closeModal('chapter-modal');showSubjectDetail(sid);toast('Document supprimé');
+}
+
+/* ══════════════════ ACTUALITÉS ══════════════════ */
+let newsEditId=null;
+const newsTagLabel={info:'ℹ️ Info',absent:'⚠️ Absence prof',annonce:'📢 Annonce',urgent:'🚨 Urgent'};
+const newsTagClass={info:'nt-info',absent:'nt-absent',annonce:'nt-annonce',urgent:'nt-urgent'};
+
+function renderNews(){
+  const news=S.get('ipsa_news')||[];
+  document.getElementById('news-list').innerHTML=news.length?news.map(n=>`
+    <div class="news-card${n.cat==='urgent'?' urgent':''}">
+      <span class="news-tag ${newsTagClass[n.cat]||'nt-info'}">${newsTagLabel[n.cat]||n.cat}</span>
+      <div class="news-title">${n.title}</div>
+      <div class="news-body">${n.body}</div>
+      <div class="news-footer">
+        <span>Publié par ${n.author} · ${fDate(n.date)}</span>
+        ${isAdmin()?`<div style="display:flex;gap:6px">
+          <button class="btn btn-sm btn-secondary" onclick="openNewsModal('${n.id}')"><i class="ti ti-edit"></i></button>
+          <button class="btn btn-sm btn-danger" onclick="deleteNews('${n.id}')"><i class="ti ti-trash"></i></button>
+        </div>`:''}
+      </div>
+    </div>`).join(''):`<div class="empty"><i class="ti ti-news"></i><p>Aucune actualité</p></div>`;
+}
+
+function openNewsModal(id=null){
+  newsEditId=id;
+  document.getElementById('news-modal-title').textContent=id?'Modifier l\'annonce':'Publier une actualité';
+  document.getElementById('nw-delete-btn').style.display=id?'flex':'none';
+  if(id){const n=(S.get('ipsa_news')||[]).find(x=>x.id==id);if(n){document.getElementById('nw-title').value=n.title;document.getElementById('nw-cat').value=n.cat;document.getElementById('nw-body').value=n.body;}}
+  else{document.getElementById('nw-title').value='';document.getElementById('nw-body').value='';}
+  openModal('news-modal');
+}
+function saveNews(){
+  const title=document.getElementById('nw-title').value.trim();const body=document.getElementById('nw-body').value.trim();if(!title||!body)return;
+  const n={id:newsEditId||uid(),title,cat:document.getElementById('nw-cat').value,body,author:CU.name,date:new Date().toISOString().split('T')[0],createdAt:Date.now()};
+  let data=S.get('ipsa_news')||[];
+  if(newsEditId)data=data.map(x=>x.id==newsEditId?n:x);else data.unshift(n);
+  S.set('ipsa_news',data);closeModal('news-modal');renderNews();updateBadges();toast('Annonce publiée ✓','success');
+}
+function deleteNews(id){
+  const nid=id||newsEditId;
+  let data=(S.get('ipsa_news')||[]).filter(x=>x.id!=nid);S.set('ipsa_news',data);closeModal('news-modal');renderNews();updateBadges();toast('Annonce supprimée');
+}
+
+/* ══════════════════ NOTATION PROFS ══════════════════ */
+function renderProfs(){
+  const profs=S.get('ipsa_profs')||[];
+  const ratings=S.get('ipsa_ratings')||[];
+  // Update prof select in rating modal
+  document.getElementById('rt-prof-select').innerHTML=profs.map(p=>`<option value="${p.id}">${p.name} — ${p.matiere}</option>`).join('');
+  
+  document.getElementById('prof-list').innerHTML=profs.length?profs.map(p=>{
+    const pRatings=ratings.filter(r=>r.profId===p.id);
+    const avg=(key)=>pRatings.length?pRatings.reduce((s,r)=>s+(r[key]||0),0)/pRatings.length:0;
+    const cats=[{key:'pedagogie',label:'Pédagogie'},{key:'clarte',label:'Clarté du sujet'},{key:'dispo',label:'Disponibilité'},{key:'difficulte',label:'Difficulté'}];
+    return `<div class="prof-card">
+      <div class="prof-header">
+        <div class="prof-avatar" style="background:${p.color}22;color:${p.color}">${p.name.split(' ').filter(x=>x.length>1).map(x=>x[0]).join('').substring(0,2)}</div>
+        <div>
+          <div class="prof-name">${p.name}</div>
+          <div class="prof-matiere">${p.matiere} · ${pRatings.length} avis</div>
+        </div>
+        ${isAdmin()?`<button class="btn btn-sm btn-danger" style="margin-left:auto" onclick="deleteProf('${p.id}')"><i class="ti ti-trash"></i></button>`:''}
+      </div>
+      ${pRatings.length?cats.map(c=>`
+        <div class="rating-row">
+          <div class="rating-label">${c.label}</div>
+          <div class="rating-bar"><div class="rating-fill" style="width:${avg(c.key)/5*100}%"></div></div>
+          <div class="rating-score">${avg(c.key).toFixed(1)}</div>
+        </div>`).join(''):`<div style="font-size:12px;color:var(--muted);text-align:center;padding:10px">Aucune évaluation — Soyez le premier !</div>`}
+      ${pRatings.filter(r=>r.comment).length?`<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+        <div class="section-title" style="margin-bottom:8px">Commentaires</div>
+        ${pRatings.filter(r=>r.comment).slice(-3).map(r=>`<div style="font-size:12px;color:var(--muted);background:var(--bg);padding:8px 10px;border-radius:6px;margin-bottom:6px;font-style:italic">"${r.comment}"</div>`).join('')}
+      </div>`:''}
+    </div>`;
+  }).join(''):`<div class="empty"><i class="ti ti-user"></i><p>Aucun professeur — Ajoutez-en un !</p></div>`;
+}
+
+function openProfModal(){openModal('prof-modal')}
+function saveProf(){
+  const name=document.getElementById('pr-name').value.trim();if(!name)return;
+  const colors=['#4f46e5','#e5395f','#16a34a','#d97706','#0284c7'];
+  const profs=S.get('ipsa_profs')||[];
+  const p={id:'p'+uid(),name,matiere:document.getElementById('pr-matiere').value.trim(),color:colors[profs.length%colors.length]};
+  profs.push(p);S.set('ipsa_profs',profs);closeModal('prof-modal');renderProfs();toast('Professeur ajouté ✓','success');
+}
+function deleteProf(id){let data=(S.get('ipsa_profs')||[]).filter(p=>p.id!==id);S.set('ipsa_profs',data);renderProfs();toast('Professeur supprimé')}
+
+// Star rating
+let starVals={pedagogie:0,clarte:0,dispo:0,difficulte:0};
+function initStars(groupId,key){
+  const el=document.getElementById(groupId);
+  el.innerHTML=[1,2,3,4,5].map(v=>`<span class="star" onclick="setStar('${groupId}','${key}',${v})">★</span>`).join('');
+}
+function setStar(groupId,key,val){
+  starVals[key]=val;
+  document.querySelectorAll('#'+groupId+' .star').forEach((s,i)=>s.classList.toggle('lit',i<val));
+}
+function openRatingModal(){
+  ['pedagogie','clarte','dispo','difficulte'].forEach((k,i)=>initStars(`s-${k}`,k));
+  starVals={pedagogie:0,clarte:0,dispo:0,difficulte:0};
+  openModal('rating-modal');
+}
+function saveRating(){
+  const profId=document.getElementById('rt-prof-select').value;if(!profId)return;
+  const r={id:uid(),profId,pedagogie:starVals.pedagogie,clarte:starVals.clarte,dispo:starVals.dispo,difficulte:starVals.difficulte,comment:document.getElementById('rt-comment').value.trim(),date:Date.now()};
+  let data=S.get('ipsa_ratings')||[];data.push(r);S.set('ipsa_ratings',data);
+  closeModal('rating-modal');document.getElementById('rt-comment').value='';renderProfs();toast('Évaluation soumise ✓ (anonyme)','success');
+}
+
+/* ══════════════════ ÉVÉNEMENTS ══════════════════ */
+let eventEditId=null;
+const evCatIcons={sport:'🏆',soiree:'🎉',conference:'🎤',atelier:'🔧',sortie:'🗺️',bde:'🎊',autre:'📌'};
+
+function renderEvents(){
+  const evs=S.get('ipsa_events')||[];
+  const upcoming=evs.filter(e=>daysLeft(e.date)>=0).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const past=evs.filter(e=>daysLeft(e.date)<0).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const renderList=(arr)=>arr.map(e=>`
+    <div class="item-row" onclick="${isAdmin()?`openEventModal('${e.id}')`:''}" style="${!isAdmin()?'cursor:default':''}">
+      <div class="item-icon" style="background:rgba(229,57,95,.1);font-size:20px">${evCatIcons[e.cat]||'📌'}</div>
+      <div class="item-info">
+        <div class="item-title">${e.title}</div>
+        <div class="item-meta">${fDate(e.date)} à ${e.heure} — ${e.lieu||'Lieu à définir'}</div>
+        ${e.desc?`<div class="item-meta" style="margin-top:3px">${e.desc.substring(0,80)}${e.desc.length>80?'…':''}</div>`:''}
+      </div>
+      <div class="item-right">
+        <span class="tag tag-event">${e.cat.toUpperCase()}</span>
+        ${daysLeft(e.date)>=0?`<span class="countdown ${cdClass(daysLeft(e.date))}">${cdLabel(daysLeft(e.date))}</span>`:`<span class="countdown" style="background:rgba(136,136,170,.15);color:var(--muted)">Passé</span>`}
+      </div>
+    </div>`).join('');
+
+  document.getElementById('event-list').innerHTML=`
+    ${upcoming.length?`<div class="section-title">À venir</div>${renderList(upcoming)}`:''}
+    ${past.length?`<div class="section-title" style="margin-top:16px">Passés</div>${renderList(past)}`:''}
+    ${!evs.length?`<div class="empty"><i class="ti ti-calendar"></i><p>Aucun événement</p></div>`:''}`;
+}
+
+function openEventModal(id=null){
+  eventEditId=id;
+  document.getElementById('event-modal-title').textContent=id?'Modifier l\'événement':'Créer un événement';
+  document.getElementById('ev-delete-btn').style.display=id?'flex':'none';
+  if(id){const e=(S.get('ipsa_events')||[]).find(x=>x.id==id);if(e){document.getElementById('ev-title').value=e.title;document.getElementById('ev-date').value=e.date;document.getElementById('ev-heure').value=e.heure;document.getElementById('ev-lieu').value=e.lieu||'';document.getElementById('ev-cat').value=e.cat;document.getElementById('ev-desc').value=e.desc||'';}}
+  else{['ev-title','ev-lieu','ev-desc'].forEach(i=>document.getElementById(i).value='');}
+  openModal('event-modal');
+}
+function saveEvent(){
+  const title=document.getElementById('ev-title').value.trim();const dat=document.getElementById('ev-date').value;if(!title||!dat)return;
+  const ev={id:eventEditId||uid(),title,date:dat,heure:document.getElementById('ev-heure').value,lieu:document.getElementById('ev-lieu').value,cat:document.getElementById('ev-cat').value,desc:document.getElementById('ev-desc').value};
+  let data=S.get('ipsa_events')||[];
+  if(eventEditId)data=data.map(x=>x.id==eventEditId?ev:x);else data.push(ev);
+  S.set('ipsa_events',data);closeModal('event-modal');renderEvents();toast('Événement enregistré ✓','success');
+}
+function deleteEvent(){let data=(S.get('ipsa_events')||[]).filter(x=>x.id!=eventEditId);S.set('ipsa_events',data);closeModal('event-modal');renderEvents();toast('Événement supprimé')}
+
+/* ══════════════════ LOGICIELS ══════════════════ */
+let softEditId=null;
+const catColors={simulation:'#d97706',cao:'#0284c7',bureau:'#4f46e5',code:'#16a34a',analyse:'#e5395f',autre:'#8888aa'};
+
+function renderSofts(){
+  const softs=S.get('ipsa_softs')||[];
+  document.getElementById('soft-grid').innerHTML=softs.length?softs.map(s=>`
+    <div class="soft-card">
+      <div class="soft-icon" style="background:${s.color}22;color:${s.color}">${s.icon||'💻'}</div>
+      <div class="soft-name">${s.name}</div>
+      <div style="font-size:10px;color:${catColors[s.cat]||'var(--muted)'};margin-bottom:6px;font-family:'DM Mono',monospace">${s.cat.toUpperCase()}</div>
+      <div class="soft-desc">${s.desc}</div>
+      ${s.licence?`<div style="font-size:11px;color:var(--muted);margin-bottom:10px"><i class="ti ti-key" style="font-size:11px"></i> ${s.licence}</div>`:''}
+      <div class="soft-actions">
+        ${s.download?`<a href="${s.download}" target="_blank" class="btn btn-sm btn-primary" style="text-decoration:none"><i class="ti ti-download"></i> Télécharger</a>`:''}
+        ${s.tutos?`<button class="btn btn-sm btn-secondary" onclick="showTutos('${s.id}')"><i class="ti ti-book"></i> Tutoriels</button>`:''}
+        ${isAdmin()?`<button class="btn btn-sm btn-secondary btn-icon" onclick="openSoftModal('${s.id}')"><i class="ti ti-edit"></i></button>`:''}
+      </div>
+    </div>`).join(''):`<div class="empty" style="grid-column:1/-1"><i class="ti ti-device-desktop"></i><p>Aucun logiciel — Ajoutez-en un !</p></div>`;
+}
+
+function showTutos(id){
+  const s=(S.get('ipsa_softs')||[]).find(x=>x.id===id);if(!s)return;
+  const tutos=(s.tutos||'').split('\n').filter(t=>t.trim()).map(t=>{const[title,url]=t.split('|').map(x=>x.trim());return{title:title||t,url:url||''}});
+  document.getElementById('tuto-modal-title').innerHTML=`<i class="ti ti-book"></i> Tutoriels — ${s.name}`;
+  document.getElementById('tuto-modal-content').innerHTML=tutos.length?`<ul class="tuto-list">${tutos.map((t,i)=>`
+    <li class="tuto-item" ${t.url?`onclick="window.open('${t.url}','_blank')"`:''}style="${t.url?'cursor:pointer':'cursor:default'}">
+      <div class="tuto-num">${i+1}</div>
+      <div style="flex:1"><div style="font-size:14px;font-weight:500">${t.title}</div>${t.url?`<div style="font-size:11px;color:var(--accent)">${t.url.substring(0,50)}…</div>`:''}</div>
+      ${t.url?`<i class="ti ti-external-link" style="color:var(--muted);font-size:14px"></i>`:''}
+    </li>`).join('')}</ul>`:`<div class="empty"><p>Aucun tutoriel disponible</p></div>`;
+  openModal('tuto-modal');
+}
+
+function openSoftModal(id=null){
+  softEditId=id;
+  document.getElementById('soft-modal-title').textContent=id?'Modifier le logiciel':'Ajouter un logiciel';
+  document.getElementById('sf-delete-btn').style.display=id?'flex':'none';
+  if(id){const s=(S.get('ipsa_softs')||[]).find(x=>x.id===id);if(s){document.getElementById('sf-name').value=s.name;document.getElementById('sf-icon').value=s.icon||'';document.getElementById('sf-cat').value=s.cat;document.getElementById('sf-color').value=s.color||'#4f46e5';document.getElementById('sf-desc').value=s.desc||'';document.getElementById('sf-download').value=s.download||'';document.getElementById('sf-licence').value=s.licence||'';document.getElementById('sf-tutos').value=s.tutos||'';}}
+  else{['sf-name','sf-icon','sf-desc','sf-download','sf-licence','sf-tutos'].forEach(i=>document.getElementById(i).value='');}
+  openModal('soft-modal');
+}
+function saveSoft(){
+  const name=document.getElementById('sf-name').value.trim();if(!name)return;
+  const s={id:softEditId||'sf'+uid(),name,icon:document.getElementById('sf-icon').value||'💻',cat:document.getElementById('sf-cat').value,color:document.getElementById('sf-color').value,desc:document.getElementById('sf-desc').value,download:document.getElementById('sf-download').value,licence:document.getElementById('sf-licence').value,tutos:document.getElementById('sf-tutos').value};
+  let data=S.get('ipsa_softs')||[];
+  if(softEditId)data=data.map(x=>x.id===softEditId?s:x);else data.push(s);
+  S.set('ipsa_softs',data);closeModal('soft-modal');renderSofts();toast('Logiciel enregistré ✓','success');
+}
+function deleteSoft(){let data=(S.get('ipsa_softs')||[]).filter(x=>x.id!==softEditId);S.set('ipsa_softs',data);closeModal('soft-modal');renderSofts();toast('Logiciel supprimé')}
+
+/* ══════════════════ ADMIN ══════════════════ */
+function renderAdmin(){
+  if(!isAdmin()){showPage('dashboard');return}
+  const users=S.get('ipsa_users')||[];
+  const exs=S.get('ipsa_examens')||[];
+  const rds=S.get('ipsa_rendus')||[];
+  const news=S.get('ipsa_news')||[];
+  const evs=S.get('ipsa_events')||[];
+  const softs=S.get('ipsa_softs')||[];
+
+  document.getElementById('admin-stats').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div style="background:var(--bg);padding:10px;border-radius:8px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent)">${users.length}</div><div style="font-size:11px;color:var(--muted)">Utilisateurs</div></div>
+      <div style="background:var(--bg);padding:10px;border-radius:8px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent2)">${exs.length}</div><div style="font-size:11px;color:var(--muted)">Examens</div></div>
+      <div style="background:var(--bg);padding:10px;border-radius:8px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent4)">${rds.length}</div><div style="font-size:11px;color:var(--muted)">Rendus</div></div>
+      <div style="background:var(--bg);padding:10px;border-radius:8px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent3)">${softs.length}</div><div style="font-size:11px;color:var(--muted)">Logiciels</div></div>
+    </div>`;
+
+  document.getElementById('users-table').innerHTML=`
+    <thead><tr><th>Utilisateur</th><th>Email</th><th>Promo</th><th>Rôle</th><th>Inscription</th><th>Actions</th></tr></thead>
+    <tbody>${users.map(u=>`<tr>
+      <td><div style="display:flex;align-items:center;gap:8px"><div class="user-avatar-sm" style="background:${u.color}22;color:${u.color};width:28px;height:28px;font-size:11px">${u.name.split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase()}</div>${u.name}</div></td>
+      <td>${u.email}</td><td>${u.promo||'—'}</td>
+      <td><span class="role-chip ${u.role==='admin'?'role-admin':'role-student'}">${u.role}</span></td>
+      <td>${u.createdAt?fDate(new Date(u.createdAt).toISOString().split('T')[0]):'—'}</td>
+      <td>${u.id!==DEFAULT_ADMIN.id&&u.role!=='admin'?`<button class="btn btn-sm btn-danger" onclick="deleteUser('${u.id}')"><i class="ti ti-trash"></i></button>`:''}</td>
+    </tr>`).join('')}</tbody>`;
+}
+
+function deleteUser(id){if(!confirm('Supprimer cet utilisateur ?'))return;let users=(S.get('ipsa_users')||[]).filter(u=>u.id!==id);S.set('ipsa_users',users);renderAdmin();toast('Utilisateur supprimé')}
+
+function exportUsers(){
+  const users=S.get('ipsa_users')||[];
+  const csv='Nom,Email,Promo,Rôle\n'+users.map(u=>`${u.name},${u.email},${u.promo},${u.role}`).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='ipsa_users.csv';a.click();
+}
+
+/* ══════════════════ MODAL CLOSE ON OVERLAY ══════════════════ */
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open')})
+});
+
+/* ══════════════════ INIT ══════════════════ */
+initData();
+const sessionId=S.get('ipsa_session');
+if(sessionId){
+  const users=S.get('ipsa_users')||[];
+  const u=users.find(x=>x.id===sessionId);
+  if(u){CU=u;startApp()}
+}
+</script>
+</body>
+</html>
